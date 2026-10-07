@@ -1,0 +1,62 @@
+{
+  "initial": {
+    "reviewer": "Antigravity",
+    "reviewedCommit": "8464f2443ab96de6371c5549878563d88ec1721b",
+    "verdict": "changes_required",
+    "findings": [
+      {
+        "severity": "P2",
+        "file": "src/runtime/runner.ts",
+        "line": 34,
+        "title": "Partial redaction of generated test tokens",
+        "impact": "The redactor only masks the first 24 characters of the 64-character test token because it is sliced to match the webhook path length. However, the full token is injected into the HTTP Request node headers (`x-wfcheck-token`). If this header leaks in an execution error trace or malformed response observation, the remaining 40 characters of the active test token will be visible in plaintext reports.",
+        "concreteFix": "Add both the full token and the sliced portion to the redactor: `redactor.add(token, token.slice(0, 24));`."
+      },
+      {
+        "severity": "P2",
+        "file": "src/security/redact.ts",
+        "line": 11,
+        "title": "Data loss in text redaction fallback for objects/arrays",
+        "impact": "The fallback regex `[^\\n]*` for redacting unparsed JSON strings greedily consumes all characters to the end of the line if the sensitive key's value is an object or array (which do not match the string/number/boolean alternative). This deletes any legitimate subsequent test evidence or properties appearing on the same line in the report.",
+        "concreteFix": "Modify the fallback non-capturing group to stop at structural boundaries or use a non-greedy match, for example replacing `[^\\n]*` with `.*?` followed by a lookahead for `,` or `}`."
+      },
+      {
+        "severity": "P3",
+        "file": "src/spec/load.ts",
+        "line": 12,
+        "title": "Directory escape validation bypass on Windows using absolute paths",
+        "impact": "The `readBounded` function relies on `path.relative` not starting with `../` to prevent reading files outside the project directory. On Windows, providing an absolute path on a different drive (e.g., `D:\\secrets.yaml` while running in `C:\\Project`) causes `path.relative` to return the absolute path itself. Since it does not start with `../`, the path is permitted, allowing the CLI to read arbitrary local files across drives into the suite execution.",
+        "concreteFix": "Update the validation condition to also reject absolute paths returned by `path.relative`: `if(rel==='..'||rel.startsWith('../')||rel.startsWith('..\\\\')||require('node:path').isAbsolute(rel))`."
+      }
+    ],
+    "limitations": []
+  },
+  "recheck": {
+    "reviewer": "Antigravity",
+    "reviewedCommit": "b0809e36790db720a443b88da1dc169caffcecea",
+    "verdict": "changes_required",
+    "findings": [
+      {
+        "severity": "P2",
+        "file": "src/security/redact.ts",
+        "line": 32,
+        "title": "Stray opening brackets disable embedded JSON redaction causing data loss",
+        "impact": "The `embeddedJson` parser terminates its search for the remainder of the string if it encounters an unclosed or mismatched opening bracket (e.g., a truncated `[` or a mismatch like `{ ]`). This causes any perfectly valid embedded JSON appearing later in the string to be skipped. Consequently, the redaction falls back to the original regex, which uses a greedy `[^\\n]*` catch-all for arrays/objects, resulting in the unintended truncation of all subsequent evidence on that line.",
+        "concreteFix": "In `embeddedJson`, when `end < 0` or a bracket mismatch occurs, advance `offset` by 1 (`output += s[start]; offset = start + 1; continue;`) instead of appending the entire remaining string and breaking the outer loop."
+      }
+    ],
+    "limitations": []
+  },
+  "final": {
+    "reviewer": "Antigravity",
+    "reviewedCommit": "8ae4c231d248df1a0997e52fc8bb16061d21b4b0",
+    "verdict": "pass",
+    "findings": [],
+    "limitations": "Bounded static analysis of the provided delta. Execution context, deep regex backtracking profiling, and external dependencies were not dynamically evaluated. Bounded to the explicitly stated redaction and recovery invariants."
+  },
+  "claude": {
+    "status": "not_completed",
+    "reason": "CLI reported weekly quota exhaustion (HTTP 429), no review output",
+    "waivedByUser": true
+  }
+}

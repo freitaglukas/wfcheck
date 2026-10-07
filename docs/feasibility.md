@@ -100,8 +100,12 @@ The initial tarball was installed with `npm install --prefix <clean-temp-directo
 
 `node scripts/missing-evidence-smoke.mjs` planned one capability probe against exact workflow **4XwUTHfHHb7odd1w**. The API confirmed per-copy `saveDataSuccessExecution: none`; its real webhook was accepted. The adapter could not obtain saved correlated execution evidence and returned **EVIDENCE** (exit meaning 2) within a 3-second bound. No terminal success was fabricated or claimed. The workflow was cleaned. This deliberate per-copy setup probe did not alter account settings or source exports.
 
-The final tarball is rebuilt after these documentation updates and smoke-tested again locally; final artifact metadata is recorded in artifacts/final-package-smoke.json. No GitHub/npm/release publication occurs.
+The final tarball is rebuilt after these documentation updates and smoke-tested again locally; final artifact metadata is recorded in artifacts/final-package-smoke.json. No GitHub/npm/release publication occurred during that initial verification. Public repository publication was subsequently authorized by the owner, following the review recorded in docs/reviews/2026-10-07.md. No npm or release publication is authorized.
 
 ## Final resource audit
 
 A fresh authenticated GET of workflows/executions (limit 250) returned **0 workflows and 0 saved executions**, with no next page. Every project-root manifest entry is cleaned; package-run manifests were also verified cleaned by their installed-CLI reports. All created sentinels and capability probes are removed. Live source, package and negative probes used no unrelated workflows or account-setting writes.
+
+## Publication hardening review
+
+Independent AGY review and regression fixes are recorded in [docs/reviews/2026-10-07.md](reviews/2026-10-07.md). The current code passes 43 tests and a production dependency audit with zero vulnerabilities. These changes harden reporter redaction and filesystem containment; no additional Cloud executions or native-interception qualification are claimed. Claude was blocked by weekly quota exhaustion and explicitly waived by the owner.
