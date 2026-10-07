@@ -1,0 +1,8 @@
+import {it,expect,afterEach} from 'vitest';import {mkdtemp,rm} from 'node:fs/promises';import {tmpdir} from 'node:os';import {join} from 'node:path';import {Manifest} from '../src/runtime/manifest.js';import {N8nCloudAdapter} from '../src/adapters/n8n-cloud/index.js';
+const dirs:string[]=[];afterEach(async()=>{await Promise.all(dirs.splice(0).map(d=>rm(d,{recursive:true,force:true})));});
+it('refuses deletion by prefix or unrecorded ID',async()=>{const d=await mkdtemp(join(tmpdir(),'wfcheck-'));dirs.push(d);const m=new Manifest(d,'run','https://fake.example.test');const calls:any[]=[];const a=new N8nCloudAdapter({request:async(...args:any[])=>{calls.push(args)}} as any,m);await expect(a.cleanup({workflowId:'wfcheck-dev-unrelated',prepared:{} as any})).rejects.toThrow(/manifest/);expect(calls).toHaveLength(0);});
+it('cleans only exact owned workflow/execution IDs and preserves changed ownership',async()=>{
+ const d=await mkdtemp(join(tmpdir(),'wfcheck-'));dirs.push(d);const m=new Manifest(d,'run','https://fake.example.test');const e=await m.begin('test','wfcheck-dev-exact');e.workflowId='123';e.state='owned';await m.save();
+ const calls:any[]=[];const client={request:async(path:string,method='GET')=>{calls.push([path,method]);if(path==='workflows/123'&&method==='GET')return {name:e.name};if(path.startsWith('executions?'))return {data:[{id:'e1',workflowId:'123',status:'success'}]};}};
+ const a=new N8nCloudAdapter(client as any,m);await a.cleanup({workflowId:'123',prepared:{} as any});expect(calls.filter(x=>x[1]==='DELETE')).toEqual([['executions/e1','DELETE'],['workflows/123','DELETE']]);expect(m.leftovers()).toHaveLength(0);
+});

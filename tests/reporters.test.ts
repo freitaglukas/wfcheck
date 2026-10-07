@@ -1,0 +1,8 @@
+import {it,expect} from 'vitest';
+import {jsonReport,junitReport,consoleTest} from '../src/reporters/index.js';
+import {Redactor,redactor} from '../src/security/redact.js';
+it('redacts nested secrets and literal tokens',()=>{const r=new Redactor();r.add('actual-private-key');expect(JSON.stringify(r.object({password:'bad',nested:{authorization:'bad'},value:'actual-private-key'}))).not.toMatch(/bad|actual-private-key/);});
+it('preserves failed vs infrastructure error and escapes XML',()=>{
+ redactor.add('private-value');const r:any={schemaVersion:1,runId:'r',suite:'a<&',plannedExecutions:2,durationMs:1000,exitCode:2,tests:[{id:'broken',status:'failed',durationMs:2,assertions:[{passed:false,message:'bad < mapping private-value'}],cleanup:{status:'cleaned'}},{id:'missing',status:'error',durationMs:3,assertions:[],error:{code:'EVIDENCE',message:'missing > evidence'},cleanup:{status:'failed'}}]};
+ const xml=junitReport(r);expect(xml).toContain('failures="1"');expect(xml).toContain('errors="1"');expect(xml).toContain('&lt;');expect(xml).not.toContain('private-value');expect(jsonReport(r)).not.toContain('private-value');expect(consoleTest(r.tests[0])).toContain('FAIL');
+});

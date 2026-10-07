@@ -1,0 +1,39 @@
+schemaVersion: 1
+name: wfcheck-broken
+tests:
+  - id: broken-mapping
+    workflow: ../workflows/broken-mapping.json
+    fixture: ../fixtures/contact.json
+    mocks:
+      - id: crm
+        method: POST
+        path: /contacts
+        responses:
+          - kind: json
+            status: 201
+            json:
+              id: fake-contact-1
+    assertions:
+      - target: execution.status
+        equals: success
+      - target: requests.count
+        mockId: crm
+        equals: 1
+      - target: request.json
+        mockId: crm
+        requestIndex: 0
+        pointer: /email
+        equals: customer@example.test
+      - target: node.count
+        nodeId: map
+        runIndex: 0
+        outputIndex: 0
+        equals: 1
+      - target: node.json
+        nodeId: map
+        pointer: /email
+        equals: customer@example.test
+      - target: node.json
+        nodeId: crm
+        pointer: /id
+        equals: fake-contact-1

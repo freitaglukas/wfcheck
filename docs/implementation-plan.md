@@ -1,0 +1,20 @@
+# Cloud MVP implementation plan
+
+Goal: a single local TypeScript package that detects a mapping regression on the real yaumo n8n Cloud instance even when n8n completes successfully.
+
+Architecture: strict YAML compiles into immutable test plans; orchestration depends on a runtime interface; the Cloud adapter uses public API discovery, workflow CRUD/publish lifecycle and execution detail reads. A local mock gateway exposes authenticated run/test routes through a temporary HTTPS tunnel, with no remote control interface or forwarding. Assertions consume actual saved execution data and captured requests.
+
+Authority and assumptions: the 2026-10-07 user request is the current design brief and authorizes implementation, temporary project resource lifecycle and a temporary HTTPS tunnel. It supersedes the bundled handoff's local-first runtime gate. No AGENTS.md or repository approval rules were found. This directory is dedicated and contains only the earlier handoff. Implementation runs inline with one lead; review follows the vertical slice. Cloud execution saving is a per-copy setting, never an account change. Native destinations, container containment and native integration interception remain separate unverified gates. Docker works, but no user-supplied pinned n8n image exists, so that spike is blocked.
+
+Constraints: Node 24 LTS, one npm package and lockfile; no code hooks in suites; HTTP destinations must use the literal gateway placeholder; explicit small node/operation allowlist; max 20 serial executions per invocation; fresh run/test identity; exact-ID ownership manifest; no external publication, telemetry or uploads; API key never printed.
+
+Review focus: missing/empty execution data must error; redirect and expression escapes must be rejected; sequence exhaustion and late traffic must fail; interruption must preserve precise leftovers; reports must redact nested secrets and inline values.
+
+- [ ] 1. Spec/assertions (`src/spec`, `src/assertions`, `src/security`, `tests/spec.test.ts`, `tests/assertions.test.ts`): write failing strict-schema and observation tests, implement validation and JSON Pointer assertions, run targeted tests.
+- [ ] 2. Gateway (`src/gateway`, `tests/gateway.test.ts`): failing real HTTP tests for token authentication, capture, isolation, matching, sequences, delay, malformed JSON and quotas; implement bounded local server; run targeted tests.
+- [ ] 3. Thin Cloud slice (`src/adapters/n8n-cloud`, `src/runtime`, `tests/runtime.test.ts`): safe discovery; validate/copy/export hash; create -> manifest -> activate -> webhook -> correlate marker -> terminal includeData -> assertions -> cleanup. Tests cover missing evidence, unsafe workflows and exact-ID cleanup; unit stubs never count as live evidence.
+- [ ] 4. Real correct/broken demo: two serial executions using original examples through temporary HTTPS tunnel. Correct passes; wrong email mapping yields n8n success and assertion failure/exit 1. Record actual execution IDs, requests and cleanup in docs/feasibility.md before broader polish.
+- [ ] 5. Acceptance/examples/reporters/CLI (`src/cli`, `src/reporters`, `examples`, `tests`): init, read-only doctor, run, console/JSON/JUnit, A-G synthetic scenarios plus repeat isolation and unrelated-resource cleanup sentinel. Bound invocations at 20 and print counts before execution.
+- [ ] 6. Documentation/package: README, versioned schema, support matrix, SECURITY, Apache-2.0/NOTICE/dependency licenses, .env.example. Build tarball, inspect contents, install/smoke test in clean directory; record verified vs blocked results and ensure zero owned leftovers.
+
+Verification commands: npm test; npm run build; node dist/cli/main.js doctor; node dist/cli/main.js run examples/suites/correct.yaml; node dist/cli/main.js run examples/suites/broken.yaml; node dist/cli/main.js run examples/suites/acceptance.yaml; npm pack; clean-prefix install and wfcheck init/doctor/run smoke tests. Paid executions are invoked manually, serially, without trigger retries or schedules.

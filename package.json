@@ -1,0 +1,43 @@
+{
+  "name": "wfcheck-local-alpha",
+  "version": "0.1.0",
+  "description": "Local-first regression testing of webhook workflows on real n8n runtimes",
+  "type": "module",
+  "license": "Apache-2.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "bin": {
+    "wfcheck": "dist/cli/main.js"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "docs",
+    "README.md",
+    "SECURITY.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    ".env.example"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "dev": "tsx src/cli/main.ts",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "commander": "^15.0.0",
+    "dotenv": "^18.0.6",
+    "undici": "^8.11.2",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}
