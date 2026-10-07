@@ -8,3 +8,11 @@ it('preserves failed vs infrastructure error and escapes XML',()=>{
 });
 it('redacts raw JSON body strings including numeric credential values',()=>{const r=new Redactor();const raw=r.object({body:'{"credential":"private-value","password":1234}',json:{credential:'private-value',password:1234}});expect(JSON.stringify(raw)).not.toMatch(/private-value|1234/);});
 it('redacts credential scalars in surrounding text and malformed JSON',()=>{const r=new Redactor();expect(JSON.stringify(r.object({data:'prefix {"credential":"secret-value-123","password":123456789,"passwd":false}'}))).not.toMatch(/secret-value-123|123456789|false/);});
+it('preserves public evidence after redacting nested credentials in embedded JSON',()=>{
+ const r=new Redactor();const out=r.text('prefix {"credential":{"password":"nested-private"},"visible":"keep"} suffix');
+ expect(out).not.toContain('nested-private');expect(out).toContain('"visible":"keep"');expect(out).toContain(' suffix');
+});
+it('preserves adjacent fields when embedded secret arrays contain escaped braces',()=>{
+ const r=new Redactor();const out=r.text('prefix {"note":"} [","secret":[{"value":"private-array"}],"visible":42} suffix');
+ expect(out).not.toContain('private-array');expect(out).toContain('"visible":42');expect(out).toContain(' suffix');
+});

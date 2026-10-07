@@ -1,13 +1,17 @@
 import { readFile, realpath, stat } from 'node:fs/promises';
-import { resolve, relative, dirname } from 'node:path';
+import { resolve, relative, dirname, isAbsolute, sep } from 'node:path';
 import { createHash } from 'node:crypto';
 import { parseDocument } from 'yaml';
 import { suiteSchema, type Suite } from './schema.js';
 import { HarnessError } from '../security/errors.js';
+interface PathApi {relative:(from:string,to:string)=>string;isAbsolute:(path:string)=>boolean;sep:string;}
+export function isWithinDirectory(root:string,file:string,paths:PathApi={relative,isAbsolute,sep}):boolean {
+  const rel=paths.relative(root,file);
+  return !paths.isAbsolute(rel)&&rel!=='..'&&!rel.startsWith('..'+paths.sep);
+}
 export async function readBounded(path:string,root=process.cwd()):Promise<string> {
   const [real,base]=await Promise.all([realpath(path),realpath(root)]);
-  const rel=relative(base,real);
-  if(rel==='..'||rel.startsWith('../')||rel.startsWith('..\\'))throw new HarnessError('CONFIG','Input file escapes the project directory');
+  if(!isWithinDirectory(base,real))throw new HarnessError('CONFIG','Input file escapes the project directory');
   const s=await stat(real);
   if(!s.isFile()||s.size>1024*1024)throw new HarnessError('CONFIG','Input must be a file of at most 1 MiB');
   return readFile(real,'utf8');

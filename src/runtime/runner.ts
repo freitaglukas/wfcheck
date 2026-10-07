@@ -34,7 +34,7 @@ export async function runCompiled(suite:Suite,compiled:CompiledTest[],adapter:Ru
     let handle:RuntimeHandle|undefined;
     try {
       if(halted||signal?.aborted)throw new HarnessError('INTERRUPTED','Test not executed because an earlier infrastructure failure or interruption halted the suite');
-      const token=gateway.register(runId,test.spec.id,test.spec.mocks,test.spec.timeoutMs+30000).token;redactor.add(token.slice(0,24));
+      const token=gateway.register(runId,test.spec.id,test.spec.mocks,test.spec.timeoutMs+30000).token;redactor.add(token,token.slice(0,24));
       const prepared=prepareWorkflow(test.source,publicUrl+'/r/'+runId+'/'+test.spec.id,runId,test.spec.id,token,test.spec.timeoutMs);
       result.sourceHash=prepared.sourceHash;result.changes=prepared.changes;
       const caseSignal=signal?AbortSignal.any([signal,AbortSignal.timeout(test.spec.timeoutMs)]):AbortSignal.timeout(test.spec.timeoutMs);
