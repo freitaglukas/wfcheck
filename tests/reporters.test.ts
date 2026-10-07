@@ -16,3 +16,6 @@ it('preserves adjacent fields when embedded secret arrays contain escaped braces
  const r=new Redactor();const out=r.text('prefix {"note":"} [","secret":[{"value":"private-array"}],"visible":42} suffix');
  expect(out).not.toContain('private-array');expect(out).toContain('"visible":42');expect(out).toContain(' suffix');
 });
+it('preserves valid JSON evidence after stray unclosed or mismatched brackets',()=>{
+ const r=new Redactor();for(const prefix of ['trace [','trace { ] ']){const out=r.text(prefix+'{"credential":{"password":"nested-private"},"visible":"keep"} suffix');expect(out).not.toContain('nested-private');expect(out).toContain('"visible":"keep"');expect(out).toContain(' suffix');}
+});

@@ -12,25 +12,26 @@ export class Redactor {
       .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,email=>email.toLowerCase().endsWith('.test')?email:'[REDACTED EMAIL]');
   }
   private embeddedJson(s:string):string {
+    // Index balanced containers in one pass, including ones after stray delimiters.
+    const ends=new Map<number,number>();
+    const stack:Array<{start:number;char:string}>=[];
+    let quoted=false,escaped=false;
+    for(let i=0;i<s.length;i++){
+      const c=s[i]!;
+      if(quoted){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')quoted=false;continue;}
+      if(c==='"'){quoted=true;continue;}
+      if(c==='{'||c==='[')stack.push({start:i,char:c});
+      else if(c==='}'||c===']'){
+        const open=stack.pop();
+        if(open?.char===(c==='}'?'{':'['))ends.set(open.start,i+1);
+        else stack.length=0;
+      }
+    }
     let output='',offset=0;
     while(offset<s.length){
-      const relative=s.slice(offset).search(/[\[{]/);
-      if(relative<0){output+=s.slice(offset);break;}
-      const start=offset+relative;
-      output+=s.slice(offset,start);
-      const stack:string[]=[];let quoted=false,escaped=false,end=-1;
-      for(let i=start;i<s.length;i++){
-        const c=s[i]!;
-        if(quoted){if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c==='"')quoted=false;continue;}
-        if(c==='"'){quoted=true;continue;}
-        if(c==='{'||c==='[')stack.push(c);
-        else if(c==='}'||c===']'){
-          const open=stack.pop();if(open!==(c==='}'?'{':'['))break;
-          if(!stack.length){end=i+1;break;}
-        }
-      }
-      if(end<0){output+=s.slice(start);break;}
-      const fragment=s.slice(start,end);
+      const end=ends.get(offset);
+      if(end===undefined){output+=s[offset++];continue;}
+      const fragment=s.slice(offset,end);
       try{output+=JSON.stringify(this.object(JSON.parse(fragment)));}catch{output+=fragment;}
       offset=end;
     }
