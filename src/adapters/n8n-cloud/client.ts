@@ -1,5 +1,6 @@
 import { HarnessError } from '../../security/errors.js';
 import { redactor } from '../../security/redact.js';
+export class ApiError extends HarnessError {constructor(public readonly status:number,message:string){super('API',message);}}
 export class CloudClient {
   readonly baseUrl:string;
   constructor(baseUrl:string,private key:string){
@@ -13,7 +14,7 @@ export class CloudClient {
     let response:Response;
     try{response=await fetch(this.baseUrl+'/api/v1/'+path,{method,headers:{'X-N8N-API-KEY':this.key,'content-type':'application/json','accept':'application/json'},body:body===undefined?undefined:JSON.stringify(body),redirect:'error',signal:abort});}
     catch{throw new HarnessError(signal?.aborted?'TIMEOUT':'API',`${method} ${path.split('?')[0]} failed or timed out; writes are not retried`);}
-    if(!response.ok)throw new HarnessError('API',`${method} ${path.split('?')[0]} returned HTTP ${response.status}`);
+    if(!response.ok)throw new ApiError(response.status,`${method} ${path.split('?')[0]} returned HTTP ${response.status}`);
     if(response.status===204)return undefined;
     let bytes=0;const chunks:Uint8Array[]=[];
     if(response.body)for await(const c of response.body){bytes+=c.length;if(bytes>8*1024*1024)throw new HarnessError('EVIDENCE','Public API response exceeds 8 MiB');chunks.push(c);}

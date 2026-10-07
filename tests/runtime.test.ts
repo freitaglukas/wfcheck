@@ -14,3 +14,5 @@ it('requires actual runData and terminal status; normalizes explicit outputs',()
  expect(e.nodes.webhook?.[0]?.outputs).toEqual([[{body:{x:1}}]]);
  expect(()=>normalizeExecution({id:'1',status:'running'},JSON.parse(wf))).toThrow();
 });
+it('rejects dynamic headers and HTTP destinations that bypass the gateway',async()=>{const {readFile}=await import('node:fs/promises');const good=JSON.parse(await readFile('examples/workflows/correct.json','utf8'));for(const mutation of ['name','url']){const w=structuredClone(good);const h=w.nodes.find((n:any)=>n.id==='crm');if(mutation==='name')h.parameters.headerParameters.parameters[0].name='={{ $json.body.headerName }}';else h.parameters.url='https://unrelated.example.test/contacts';expect(()=>prepareWorkflow(JSON.stringify(w),'https://g.example.test/r/r/t','r','t','token')).toThrow();}});
+it('rejects reserved node identities',()=>{const w=JSON.parse(wf);w.nodes[0].id='__proto__';expect(()=>prepareWorkflow(JSON.stringify(w),'https://g.example.test','r','t','token')).toThrow(/reserved/);});

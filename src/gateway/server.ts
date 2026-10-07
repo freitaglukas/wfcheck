@@ -9,7 +9,7 @@ import { redactor } from '../security/redact.js';
 import { Resolver } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { Agent,fetch as gatewayFetch } from 'undici';
-interface State extends GatewayCase {requests:RequestObservation[];errors:string[];cursors:Map<string,number>;sealed:boolean;accepted:number;}
+interface State extends GatewayCase {requests:RequestObservation[];errors:string[];cursors:Map<string,number>;sealed:boolean;accepted:number;reading:Set<IncomingMessage>;}
 function same(a:string,b:string):boolean {const x=Buffer.from(a),y=Buffer.from(b);return x.length===y.length&&timingSafeEqual(x,y);}
 export class Gateway {
   private dispatcher?:Agent;
@@ -42,13 +42,19 @@ export class Gateway {
     if(!/^[a-zA-Z0-9_-]{1,64}$/.test(runId)||!/^[a-zA-Z0-9_-]{1,64}$/.test(testId))throw new HarnessError('GATEWAY','Invalid namespace');
     const key=runId+'/'+testId;
     if(this.cases.has(key)||this.cases.size>=20)throw new HarnessError('GATEWAY','Duplicate namespace or retention limit');
-    const state:State={runId,testId,mocks:structuredClone(mocks),token:randomBytes(32).toString('hex'),expiresAt:Date.now()+Math.min(ttlMs,180000),requests:[],errors:[],cursors:new Map(),sealed:false,accepted:0};
+    const state:State={runId,testId,mocks:structuredClone(mocks),token:randomBytes(32).toString('hex'),expiresAt:Date.now()+Math.min(ttlMs,180000),requests:[],errors:[],cursors:new Map(),sealed:false,accepted:0,reading:new Set()};
     this.cases.set(key,state);redactor.add(state.token);return state;
   }
   unregister(runId:string,testId:string):void {this.cases.delete(runId+'/'+testId);}
   snapshot(runId:string,testId:string):{requests:RequestObservation[];errors:string[]} {
     const c=this.cases.get(runId+'/'+testId);if(!c)throw new HarnessError('GATEWAY','Missing gateway namespace');
-    return structuredClone({requests:c.requests,errors:c.errors});
+    return structuredClone({requests:c.requests,errors:[...c.errors,...(c.reading.size?['Request body capture incomplete']:[])]});
+  }
+  async drain(runId:string,testId:string):Promise<void>{
+    const c=this.cases.get(runId+'/'+testId);if(!c)return;
+    const until=Date.now()+2000;
+    while(c.reading.size&&Date.now()<until)await new Promise(resolve=>setTimeout(resolve,20));
+    if(c.reading.size)throw new HarnessError('GATEWAY','Authenticated request body capture did not complete within 2 seconds');
   }
   seal(runId:string,testId:string):void {const c=this.cases.get(runId+'/'+testId);if(c)c.sealed=true;}
   async probe(publicUrl:string):Promise<void> {
@@ -58,21 +64,24 @@ export class Gateway {
   }
   private async handle(req:IncomingMessage,res:ServerResponse):Promise<void> {
     const finish=(code:number,text:string)=>{res.writeHead(code,{'content-type':'text/plain','cache-control':'no-store'});res.end(text);};
-    if(++this.total>3000){finish(429,'Gateway global quota exceeded');for(const c of this.cases.values())c.errors.push('Global request quota exceeded');return;}
+    if(++this.total>3000){finish(429,'Gateway global quota exceeded');for(const c of this.cases.values())if(!c.errors.includes('Global request quota exceeded'))c.errors.push('Global request quota exceeded');return;}
     if(req.url==='/_wfcheck/probe'&&req.method==='POST'&&same(String(req.headers['x-wfcheck-probe']??''),this.probeToken)){finish(200,'wfcheck-gateway');return;}
     const match=/^\/r\/([a-zA-Z0-9_-]+)\/([a-zA-Z0-9_-]+)(\/[^?]*)(?:\?.*)?$/.exec(req.url??'');
     if(!match){finish(404,'No route');return;}
     const c=this.cases.get(match[1]+'/'+match[2]);
     if(!c||!same(String(req.headers['x-wfcheck-token']??''),c.token)||Date.now()>c.expiresAt){finish(401,'Invalid or expired test token');return;}
-    if(c.sealed){c.errors.push('Request received after test completed');finish(410,'Test completed');return;}
     if(++c.accepted>100){if(!c.errors.includes('Request quota exceeded'))c.errors.push('Request quota exceeded');finish(429,'Request quota exceeded');return;}
     let body='';const chunks:Buffer[]=[];let size=0;
-    for await(const chunk of req){size+=Buffer.byteLength(chunk);if(size>65536){c.errors.push('Payload limit exceeded');finish(413,'Payload limit exceeded');return;}chunks.push(Buffer.from(chunk));}
+    c.reading.add(req);
+    try{for await(const chunk of req){size+=Buffer.byteLength(chunk);if(size>65536){if(!c.errors.includes('Payload limit exceeded'))c.errors.push('Payload limit exceeded');finish(413,'Payload limit exceeded');return;}chunks.push(Buffer.from(chunk));}}
+    catch{if(!c.errors.includes('Request body capture aborted'))c.errors.push('Request body capture aborted');return;}
+    finally{c.reading.delete(req);}
     body=Buffer.concat(chunks).toString('utf8');let json:unknown;try{json=JSON.parse(body);}catch{}
     const headers:Record<string,string>={};
     for(const [name,v] of Object.entries(req.headers))if(name!=='x-wfcheck-token'&&name!=='cookie'&&name!=='authorization')headers[name]=Array.isArray(v)?v.join(','):v??'';
     const observation:RequestObservation={method:req.method??'',path:match[3]!,headers,body,json,unexpected:false,receivedAt:new Date().toISOString()};
     c.requests.push(observation);
+    if(c.sealed){observation.unexpected=true;observation.reason='Request received after test completed';observation.responseStatus=410;finish(410,'Test completed');return;}
     const rule=c.mocks.find(m=>m.method===req.method&&m.path===observation.path&&Object.entries(m.headers).every(([k,v])=>headers[k]===v)&&Object.entries(m.bodyFields).every(([p,v])=>isDeepStrictEqual(atPointer(json,p),v)));
     const cursor=rule?c.cursors.get(rule.id)??0:0;const response=rule?.responses[cursor];
     if(!rule||!response){observation.unexpected=true;observation.reason=rule?'Response sequence exhausted':'No matching rule';if(rule)observation.mockId=rule.id;observation.responseStatus=409;finish(409,'Unexpected request');return;}

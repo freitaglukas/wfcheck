@@ -1,0 +1,44 @@
+schemaVersion: 1
+name: wfcheck-response-formats
+tests:
+  - id: malformed-json
+    workflow: ../workflows/correct.json
+    fixture: ../fixtures/contact.json
+    mocks:
+      - id: crm
+        method: POST
+        path: /contacts
+        responses:
+          - kind: malformed-json
+            status: 200
+            text: "{invalid-json"
+    assertions:
+      - target: execution.status
+        equals: error
+      - target: requests.count
+        mockId: crm
+        equals: 1
+      - target: node.executed
+        nodeId: crm
+        equals: true
+  - id: text-response
+    workflow: ../workflows/text.json
+    fixture: ../fixtures/contact.json
+    mocks:
+      - id: crm
+        method: POST
+        path: /contacts
+        responses:
+          - kind: text
+            status: 200
+            text: hello synthetic world
+    assertions:
+      - target: execution.status
+        equals: success
+      - target: requests.count
+        mockId: crm
+        equals: 1
+      - target: node.json
+        nodeId: crm
+        pointer: /data
+        equals: hello synthetic world

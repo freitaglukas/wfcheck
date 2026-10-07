@@ -18,3 +18,7 @@ it('zero requests succeeds only with complete execution evidence',()=>{
  expect(evaluate([{target:'requests.count',mockId:'crm',equals:0}],{...evidence,requests:[]})[0]?.passed).toBe(true);
  expect(()=>evaluate([{target:'requests.count',mockId:'crm',equals:0}],{...evidence,execution:undefined})).toThrow();
 });
+it('redacts sensitive scalar assertion pointers and headers',()=>{
+ const e:any={...evidence,requests:[{...evidence.requests[0],json:{password:'private-password'},headers:{'x-api-key':'private-api-key'}}]};
+ const r=evaluate([{target:'request.json',mockId:'crm',requestIndex:0,pointer:'/password',equals:'expected-password'},{target:'request.header',mockId:'crm',requestIndex:0,header:'x-api-key',equals:'expected-api-key'}],e);expect(JSON.stringify(r)).not.toMatch(/private-password|private-api-key|expected-password|expected-api-key/);
+});

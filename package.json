@@ -19,7 +19,9 @@
     "LICENSE",
     "NOTICE",
     "THIRD_PARTY_NOTICES.md",
-    ".env.example"
+    ".env.example",
+    "src",
+    "CONTRIBUTING.md"
   ],
   "scripts": {
     "build": "tsc",

@@ -2,7 +2,7 @@ import { isDeepStrictEqual } from 'node:util';
 import type { Assertion } from '../spec/schema.js';
 import type { Evidence } from '../runtime/types.js';
 import { HarnessError } from '../security/errors.js';
-import { redactor } from '../security/redact.js';
+import { redactor,isSensitiveField } from '../security/redact.js';
 export const MISSING=Symbol('missing');
 export function atPointer(value:unknown,pointer:string):unknown {
   if(pointer==='')return value;
@@ -33,7 +33,8 @@ export function evaluate(assertions:Assertion[],evidence:Evidence):AssertionResu
       else {const r=requests[a.requestIndex];actual=a.target==='request.header'?r?.headers[a.header]??MISSING:r?atPointer(r.json,a.pointer):MISSING;}
     }
     const passed=actual!==MISSING&&isDeepStrictEqual(actual,a.equals);
-    const expected=redactor.object(a.equals);const safeActual=actual===MISSING?'[MISSING]':redactor.object(actual);
+    const sensitive=('pointer'in a&&isSensitiveField(a.pointer))||('header'in a&&isSensitiveField(a.header));
+    const expected=sensitive?'[REDACTED]':redactor.object(a.equals);const safeActual=actual===MISSING?'[MISSING]':sensitive?'[REDACTED]':redactor.object(actual);
     return {target:label,passed,message:passed?label+' passed':`${label}: expected ${JSON.stringify(expected)}, observed ${JSON.stringify(safeActual)}`,expected,actual:safeActual};
   });
   const unexpected=evidence.requests.filter(r=>r.unexpected);

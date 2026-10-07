@@ -108,7 +108,7 @@
           ]
         },
         "options": {
-          "timeout": 200,
+          "timeout": 1500,
           "response": {
             "response": {
               "responseFormat": "json"

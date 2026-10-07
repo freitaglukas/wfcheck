@@ -1,0 +1,7 @@
+wfcheck local alpha
+Copyright 2026 wfcheck contributors
+
+Original TypeScript CLI, assertion engine, gateway and synthetic examples.
+This package does not include the n8n runtime or its internal implementation.
+wfcheck is a working name; no package-name or trademark availability is claimed.
+Third-party dependency licenses are included in THIRD_PARTY_NOTICES.md.

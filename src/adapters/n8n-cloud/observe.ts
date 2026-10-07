@@ -6,7 +6,7 @@ export function normalizeExecution(raw:any,workflow:Workflow):ExecutionObservati
   if(!raw.id||!raw.workflowId||!terminal.has(raw.status)||(!raw.stoppedAt&&raw.finished!==true))throw new HarnessError('EVIDENCE','Missing terminal execution identity/completion evidence');
   const data=runData(raw);
   if(!data||typeof data!=='object'||Array.isArray(data)||!Object.keys(data).length)throw new HarnessError('EVIDENCE','Saved execution runData is missing, redacted or unavailable; enable saved success/error execution data for the project copy');
-  const nodes:Record<string,NodeRun[]>={};
+  const nodes:Record<string,NodeRun[]>=Object.create(null);
   for(const n of workflow.nodes){
     if(!Object.hasOwn(data,n.name))continue;
     if(!Array.isArray(data[n.name])||!data[n.name].length)throw new HarnessError('EVIDENCE',`Invalid node run evidence for ${n.name}`);

@@ -157,7 +157,7 @@ tests:
             status: 201
             json:
               id: fake-contact-1
-            delayMs: 1000
+            delayMs: 4000
     assertions:
       - target: execution.status
         equals: error

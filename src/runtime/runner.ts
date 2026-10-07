@@ -42,15 +42,26 @@ export async function runCompiled(suite:Suite,compiled:CompiledTest[],adapter:Ru
       await adapter.activate(handle,caseSignal);
       const marker=randomUUID();await adapter.trigger(handle,test.fixture,marker,caseSignal);
       const execution=await adapter.observe(handle,marker,caseSignal);
+      await gateway.drain(runId,test.spec.id);
       const snapshot=gateway.snapshot(runId,test.spec.id);
       result.evidence={execution,requests:snapshot.requests,gatewayErrors:snapshot.errors};
       result.assertions=evaluate(test.spec.assertions,result.evidence);result.status=result.assertions.every(a=>a.passed)?'passed':'failed';
     }catch(error){result.status='error';result.error={code:error instanceof HarnessError?error.code:'INFRASTRUCTURE',message:redactor.text(errorMessage(error))};halted=true;}
     finally{
       if(handle)try{await adapter.cleanup(handle);result.cleanup.status='cleaned';}catch(error){result.cleanup.status='failed';result.cleanup.message=redactor.text(errorMessage(error));result.status='error';result.error={code:'CLEANUP',message:`Leftover workflow ${handle.workflowId}. Run wfcheck cleanup with its manifest; ${result.cleanup.message}`};halted=true;}
+      gateway.seal(runId,test.spec.id);
       try{const final=gateway.snapshot(runId,test.spec.id);if(result.evidence){result.evidence.requests=final.requests;result.evidence.gatewayErrors=final.errors;result.assertions=evaluate(test.spec.assertions,result.evidence);if(result.status!=='error')result.status=result.assertions.every(a=>a.passed)?'passed':'failed';}}catch(error){if(result.evidence){result.status='error';result.error={code:error instanceof HarnessError?error.code:'GATEWAY',message:redactor.text(errorMessage(error))};halted=true;}}
-      gateway.seal(runId,test.spec.id);gateway.unregister(runId,test.spec.id);result.durationMs=Date.now()-started;tests.push(result);onResult?.(result);
+      gateway.seal(runId,test.spec.id);result.durationMs=Date.now()-started;tests.push(result);onResult?.(result);
     }
+  }
+  // Audit retained, sealed namespaces at the suite cutoff; never reuse them in a later run.
+  await Promise.allSettled(tests.filter(t=>t.evidence).map(t=>gateway.drain(runId,t.id)));
+  for(const result of tests)if(result.evidence){
+    const previousStatus=result.status;
+    const snapshot=gateway.snapshot(runId,result.id);result.evidence.requests=snapshot.requests;result.evidence.gatewayErrors=snapshot.errors;
+    try{result.assertions=evaluate(compiled.find(t=>t.spec.id===result.id)!.spec.assertions,result.evidence);if(result.status!=='error')result.status=result.assertions.every(a=>a.passed)?'passed':'failed';}
+    catch(error){result.status='error';result.error={code:error instanceof HarnessError?error.code:'GATEWAY',message:redactor.text(errorMessage(error))};}
+    if(result.status!==previousStatus)onResult?.(result);
   }
   return {schemaVersion:1,runId,suite:suite.name,startedAt:new Date(start).toISOString(),durationMs:Date.now()-start,plannedExecutions:compiled.length,tests,exitCode:tests.some(t=>t.status==='error')?2:tests.some(t=>t.status==='failed')?1:0};
 }

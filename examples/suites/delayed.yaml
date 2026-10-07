@@ -1,0 +1,25 @@
+schemaVersion: 1
+name: wfcheck-delayed
+tests:
+  - id: delayed-timeout
+    workflow: ../workflows/timeout.json
+    fixture: ../fixtures/contact.json
+    mocks:
+      - id: crm
+        method: POST
+        path: /contacts
+        responses:
+          - kind: json
+            status: 201
+            json:
+              id: fake-contact-1
+            delayMs: 4000
+    assertions:
+      - target: execution.status
+        equals: error
+      - target: requests.count
+        mockId: crm
+        equals: 1
+      - target: node.executed
+        nodeId: crm
+        equals: true
