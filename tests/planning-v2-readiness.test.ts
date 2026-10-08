@@ -12,7 +12,7 @@ function readiness(source:string,candidate:unknown){
  const contracts=suite.tests.map(t=>({id:'authored-'+t.id,fixtureId:t.id,assertion:t.assertions[0]!,provenance:{source:'user' as const}}));
  const draft=buildDraft(analyzeWorkflow(source),contracts);
  // Source is private validation input, never embedded in exported draft reports.
- const config={workflowSource:source,candidateSuite:suite,validatedInputs:suite.tests.map(t=>({path:t.input.fixture,kind:t.input.kind,sha256:'a'.repeat(64)})),authoredContracts:contracts};
+ const config={workflowSources:Object.fromEntries(suite.tests.map(t=>[t.workflow,source])),candidateSuite:suite,validatedInputs:suite.tests.map(t=>({path:t.input.fixture,kind:t.input.kind,sha256:'a'.repeat(64)})),authoredContracts:contracts};
  return {draft,config,result:validatePlan(draft,config)};
 }
 
@@ -48,9 +48,9 @@ it('requires the actual source and rejects source drift even when the candidate 
  const source=await readFile('examples/workflows/correct.json','utf8');
  const suite=parse(await readFile('examples/suites/correct.yaml','utf8'));
  const {draft,config}=readiness(source,suite);
- const missing={...config,workflowSource:undefined};
+ const missing={...config,workflowSources:undefined};
  expect(validatePlan(draft,missing).ready).toBe(false);
- expect(validatePlan(draft,{...config,workflowSource:source+' '}).ready).toBe(false);
+ expect(validatePlan(draft,{...config,workflowSources:Object.fromEntries(Object.keys(config.workflowSources).map(path=>[path,source+' ']))}).ready).toBe(false);
 });
 
 it('rejects invalid v2 parameters after all independent requirements have been supplied',async()=>{
@@ -60,4 +60,13 @@ it('rejects invalid v2 parameters after all independent requirements have been s
  const {result}=readiness(JSON.stringify(workflow),suite);
  expect(result.ready).toBe(false);
  expect(result.diagnostics.some(d=>d.code==='PARAMETERS_REQUIRED')).toBe(true);
+});
+
+it('does not approve another workflow path using source bytes supplied for the original candidate',async()=>{
+ const source=await readFile('examples/workflows/correct.json','utf8');
+ const suite=parse(await readFile('examples/suites/correct.yaml','utf8'));
+ const {draft,config}=readiness(source,suite);
+ const changed=structuredClone(config.candidateSuite);
+ changed.tests[0]!.workflow='unrelated-workflow.json';
+ expect(validatePlan(draft,{...config,candidateSuite:changed}).ready).toBe(false);
 });

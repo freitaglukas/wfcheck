@@ -6,7 +6,7 @@ All five were verified against the implementation.
 
 - Planning: offline inventory no longer uses the v1 workflow preflight to
   reject v2 features. Shared core parameter diagnostics remain intact.
-  Candidate readiness requires private original source bytes matching the
+  Candidate readiness requires private per-workflow source bytes matching the
   inspected hash and runs the actual v2 preparation rules. Regression cases
   cover literal HTTP bindings, native tables/chat, Form/PDF/reviewed Code,
   invalid parameters, missing source and source drift.
@@ -23,7 +23,7 @@ All five were verified against the implementation.
   private consumer without an author-specific filesystem path.
 
 The three bugs were reproduced with failing regressions before their fixes.
-Fresh local verification passed 174 offline tests, TypeScript build, installed
+Initial local verification passed 174 offline tests, TypeScript build, installed
 package smoke and production dependency audit (zero vulnerabilities).
 
 A real pinned Docker n8n execution also verified report preservation: n8n
@@ -32,6 +32,13 @@ the actual Unicode request remained in JSON, explicit retention returned 2,
 and exact journal-based recovery removed every owned resource. This is local
 Docker evidence; no Cloud executions or model inference were used in this pass.
 The checked-in opt-in test is `tests/e2e/retained-report.test.ts`.
+
+A fresh CodeRabbit CLI delta review completed with one additional major issue:
+candidate `test.workflow` could change while validation reused unrelated shared
+source bytes. A failing regression reproduced this. Validation now looks up
+the source resolved for each exact candidate path; absent/mismatched source
+blocks readiness. The additional regression brings the offline suite to 175
+tests. No paid review credits were enabled.
 
 Post-fix CI and any independent re-review are recorded on the PR against the
 updated commit; the original CodeRabbit result is not represented as a
