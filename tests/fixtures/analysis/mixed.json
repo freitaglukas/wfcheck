@@ -1,0 +1,77 @@
+{
+  "name": "generic",
+  "id": "original",
+  "description": "private description",
+  "shared": [
+    {
+      "private": "hidden"
+    }
+  ],
+  "activeVersion": {
+    "private": "hidden"
+  },
+  "nodes": [
+    {
+      "id": "trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "original",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "unknown",
+      "name": "Opaque",
+      "type": "community.unknown",
+      "typeVersion": 1,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "output",
+      "name": "Result",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Opaque",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Opaque": {
+      "main": [
+        [
+          {
+            "node": "Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

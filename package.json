@@ -21,13 +21,18 @@
     "THIRD_PARTY_NOTICES.md",
     ".env.example",
     "src",
-    "CONTRIBUTING.md"
+    "CONTRIBUTING.md",
+    "docker"
   ],
   "scripts": {
     "build": "tsc",
+    "schema:generate": "tsx scripts/generate-suite-schema.ts",
     "test": "vitest run",
     "dev": "tsx src/cli/main.ts",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:docker": "vitest run --config vitest.integration.config.ts --exclude tests/e2e/local-model.test.ts --exclude tests/e2e/local-replay-workflow.test.ts --exclude tests/e2e/assistant.test.ts",
+    "test:local-llm": "vitest run --config vitest.integration.config.ts tests/e2e/local-model.test.ts tests/e2e/local-replay-workflow.test.ts tests/e2e/assistant.test.ts"
   },
   "dependencies": {
     "commander": "^15.0.0",

@@ -1,25 +1,28 @@
+import {requireActive} from '../../runtime/cancellation.js';
 import { setTimeout as delay } from 'node:timers/promises';
-import type { RuntimeAdapter,RuntimeHandle,PreparedWorkflow,ExecutionObservation } from '../../runtime/types.js';
+import type { RuntimeAdapter,RuntimeHandle,PreparedWorkflow,ExecutionObservation,CompiledInput,TriggerAttempt } from '../../runtime/types.js';
 import { Manifest } from '../../runtime/manifest.js';
 import { HarnessError } from '../../security/errors.js';
 import { CloudClient,ApiError } from './client.js';
+import {executionMarker,selectCorrelated} from '../n8n-api/observe.js';
+import {submitTrigger} from '../n8n-api/trigger.js';
 import { normalizeExecution,runData,terminal } from './observe.js';
 export class N8nCloudAdapter implements RuntimeAdapter {
   private publishPath='activate';
   private unpublishPath='deactivate';
-  constructor(readonly client:CloudClient,readonly manifest:Manifest){}
+  constructor(readonly client:CloudClient,readonly manifest:Manifest,private policy:{managedDocker?:boolean}={}){}
   async doctor():Promise<unknown>{
     const discovery=await this.client.request('discover');const resources=discovery?.data?.resources;
-    const requirements:Record<string,string[]>={workflow:['createWorkflow','getWorkflow','deleteWorkflow','activateWorkflow','deactivateWorkflow'],executions:['getExecutions','getExecution','deleteExecution','stopExecution']};
+    const requirements:Record<string,string[]>={workflow:['createWorkflow','getWorkflow','deleteWorkflow','activateWorkflow','deactivateWorkflow'],executions:['getExecutions','getExecution','deleteExecution',...(this.policy.managedDocker?[]:['stopExecution'])]};
     for(const [resource,ops] of Object.entries(requirements))for(const op of ops)if(!resources?.[resource]?.endpoints?.some((e:any)=>e.operationId===op))throw new HarnessError('CAPABILITY',`Required public API capability unavailable: ${op}`);
     if(resources.workflow.endpoints.some((e:any)=>e.operationId==='publishWorkflow'))this.publishPath='publish';
     if(resources.workflow.endpoints.some((e:any)=>e.operationId==='unpublishWorkflow'))this.unpublishPath='unpublish';
     await this.client.request('workflows?limit=1');await this.client.request('executions?limit=1&includeData=true');
-    return {authentication:'verified',publicApi:'discovery verified',capabilities:requirements,runtimeVersion:'not exposed by these documented public APIs',executionData:'Saving/accessibility verified per real run; doctor performs no execution',writes:'Advertised by authenticated discovery; doctor performs no writes'};
+    return {executionStop:this.policy.managedDocker?'runtime teardown only':'public API',authentication:'verified',publicApi:'discovery verified',capabilities:requirements,runtimeVersion:'not exposed by these documented public APIs',executionData:'Saving/accessibility verified per real run; doctor performs no execution',writes:'Advertised by authenticated discovery; doctor performs no writes'};
   }
-  async importWorkflow(prepared:PreparedWorkflow,runId:string,testId:string):Promise<RuntimeHandle>{
-    const entry=await this.manifest.begin(testId,prepared.workflow.name);
-    const created=await this.client.request('workflows','POST',prepared.workflow);
+  async importWorkflow(prepared:PreparedWorkflow,runId:string,testId:string,signal?:AbortSignal):Promise<RuntimeHandle>{
+    requireActive(signal);const entry=await this.manifest.begin(testId,prepared.workflow.name);
+    requireActive(signal);const created=await this.client.request('workflows','POST',prepared.workflow,signal);
     if(typeof created?.id!=='string'||created.name!==entry.name)throw new HarnessError('OWNERSHIP','Create outcome lacks exact identity; inspect manifest intent before recovery');
     entry.workflowId=created.id;entry.state='owned';
     try{await this.manifest.save();}catch{try{await this.client.request('workflows/'+encodeURIComponent(created.id),'DELETE');entry.state='cleaned';}catch{}throw new HarnessError('OWNERSHIP',`Failed to persist ownership for workflow ${created.id}; verify cleanup manually`);}
@@ -31,7 +34,8 @@ export class N8nCloudAdapter implements RuntimeAdapter {
     // Cloud registration is asynchronous: verified minimum settling time, not a readiness guarantee.
     await delay(3000,undefined,{signal});
   }
-  async trigger(h:RuntimeHandle,input:Record<string,unknown>,marker:string,signal:AbortSignal):Promise<void>{
+  async trigger(h:RuntimeHandle,input:Record<string,unknown>|CompiledInput,marker:string,signal:AbortSignal):Promise<void|TriggerAttempt>{
+    if((input as CompiledInput).kind==='json')return submitTrigger(this.client.baseUrl,h,input as CompiledInput,marker,signal);
     this.manifest.owned(h.workflowId);const url=this.client.baseUrl+'/webhook/'+h.prepared.webhookPath;
     let r:Response;try{r=await fetch(url,{method:'POST',headers:{'content-type':'application/json','x-wfcheck-correlation':marker,'x-wfcheck-run':this.manifest.runId},body:JSON.stringify(input),redirect:'error',signal:AbortSignal.any([signal,AbortSignal.timeout(15000)])});}
     catch{throw new HarnessError('TRIGGER','Webhook transport failed; trigger is never retried to avoid duplicate paid executions');}
@@ -42,22 +46,14 @@ export class N8nCloudAdapter implements RuntimeAdapter {
     for(let poll=0;poll<120&&!signal.aborted;poll++){
       const list=await this.client.request(`executions?workflowId=${encodeURIComponent(h.workflowId)}&includeData=true&limit=25`,'GET',undefined,signal);
       if(!Array.isArray(list?.data)||list.nextCursor)throw new HarnessError('CORRELATION','Execution listing is malformed or exceeds the bounded correlation window');
-      for(const raw of list.data){
-        if(String(raw.workflowId)!==h.workflowId)throw new HarnessError('CORRELATION','Public API returned a different workflow');
-        const data=runData(raw);
-        if(terminal.has(raw.status)&&!data)throw new HarnessError('EVIDENCE','Execution data is not saved or accessible (includeData=true)');
-        const actual=data?.[h.prepared.webhookNodeName]?.[0]?.data?.main?.[0]?.[0]?.json?.headers?.['x-wfcheck-correlation'];
-        if(actual!==marker)continue;
-        if(matched&&matched!==String(raw.id))throw new HarnessError('CORRELATION','Multiple executions contain the same correlation marker');
-        matched=String(raw.id);
-        if(!entry.executionIds.includes(matched)){entry.executionIds.push(matched);await this.manifest.save();}
-      }
-      if(matched){const raw=await this.client.request(`executions/${encodeURIComponent(matched)}?includeData=true`,'GET',undefined,signal);if(String(raw.workflowId)!==h.workflowId||runData(raw)?.[h.prepared.webhookNodeName]?.[0]?.data?.main?.[0]?.[0]?.json?.headers?.['x-wfcheck-correlation']!==marker)throw new HarnessError('CORRELATION','Execution detail does not match workflow and marker');if(terminal.has(raw.status))return normalizeExecution(raw,h.prepared.workflow);}
+      const candidate=selectCorrelated(list.data,h,marker);if(candidate){if(matched&&matched!==candidate)throw new HarnessError('CORRELATION','Multiple executions contain the marker');matched=candidate;if(!entry.executionIds.includes(matched)){entry.executionIds.push(matched);await this.manifest.save();await this.recordCorrelation(h,matched);}}
+      if(matched){const raw=await this.client.request(`executions/${encodeURIComponent(matched)}?includeData=true`,'GET',undefined,signal);if(String(raw.workflowId)!==h.workflowId||!executionMarker(raw,h,marker))throw new HarnessError('CORRELATION','Execution detail does not match workflow and marker');if(terminal.has(raw.status))return normalizeExecution(raw,h.prepared.workflow);}
       await delay(750,undefined,{signal}).catch(()=>{});
     }
     if(!matched)throw new HarnessError('EVIDENCE','No saved execution with the required workflow/marker was available within the deadline. Verify execution saving, API data access and runtime completion; webhook acceptance alone is insufficient.');
     throw new HarnessError('TIMEOUT','Correlated execution did not complete within the bounded timeout');
   }
+  protected async recordCorrelation(_h:RuntimeHandle,_id:string):Promise<void>{}
   async cleanup(h:RuntimeHandle):Promise<void>{
     const entry=this.manifest.owned(h.workflowId);const id=encodeURIComponent(h.workflowId);const signal=AbortSignal.timeout(30000);
     let raw:any;

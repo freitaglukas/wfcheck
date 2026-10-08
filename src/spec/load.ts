@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { parseDocument } from 'yaml';
 import { suiteSchema, type Suite } from './schema.js';
 import { HarnessError } from '../security/errors.js';
+import { normalizeSuite } from './normalized.js';
 interface PathApi {relative:(from:string,to:string)=>string;isAbsolute:(path:string)=>boolean;sep:string;}
 export function isWithinDirectory(root:string,file:string,paths:PathApi={relative,isAbsolute,sep}):boolean {
   const rel=paths.relative(root,file);
@@ -24,4 +25,10 @@ export async function loadSuite(path:string):Promise<{suite:Suite;base:string}> 
   const parsed=suiteSchema.safeParse(doc.toJS({maxAliasCount:0}));
   if(!parsed.success)throw new HarnessError('CONFIG','Invalid suite: '+parsed.error.issues.map(x=>x.path.join('.')+': '+x.message).join('; '));
   return {suite:parsed.data,base:dirname(resolve(path))};
+}
+export async function loadSuiteDocument(path:string) {
+  const text=await readBounded(resolve(path));
+  const doc=parseDocument(text,{uniqueKeys:true,customTags:[]});
+  if(doc.errors.length||doc.warnings.length)throw new HarnessError('CONFIG','Invalid suite YAML');
+  return {suite:normalizeSuite(doc.toJS({maxAliasCount:0})),base:dirname(resolve(path))};
 }

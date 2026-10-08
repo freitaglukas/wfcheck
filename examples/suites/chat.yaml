@@ -1,0 +1,32 @@
+schemaVersion: 2
+name: Generic native chat
+runtime: docker
+llm:
+  mode: mock
+  maxOutputTokens: 32
+tests:
+  - id: chat
+    workflow: ../workflows/chat.json
+    input: { kind: json, fixture: ../fixtures/chat.json }
+    timeoutMs: 90000
+    verificationKind: behavior
+    mocks:
+      - id: chat
+        method: POST
+        path: /native-model/model/v1/chat/completions
+        responses:
+          - kind: json
+            status: 200
+            json:
+              id: synthetic-completion
+              object: chat.completion
+              model: test-model
+              choices:
+                - index: 0
+                  message: { role: assistant, content: '{"status":"synthetic"}' }
+                  finish_reason: stop
+              usage: { prompt_tokens: 5, completion_tokens: 8, total_tokens: 13 }
+    assertions:
+      - { target: execution.status, equals: success }
+      - { target: requests.count, mockId: chat, equals: 1 }
+      - { target: node.json, nodeId: chain, pointer: /text, equals: '{"status":"synthetic"}' }

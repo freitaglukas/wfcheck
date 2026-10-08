@@ -1,0 +1,4 @@
+import {it,expect} from 'vitest';import {createRuntime} from '../src/runtime/factory.js';
+it('rejects unknown runtime before reading Cloud credentials or touching Docker',async()=>{await expect(createRuntime({runtime:'invalid' as any,stateDirectory:'/tmp'},AbortSignal.timeout(100))).rejects.toThrow(/runtime/);});
+it('an aborted request creates no runtime resources',async()=>{const c=new AbortController();c.abort();await expect(createRuntime({runtime:'docker',stateDirectory:'/tmp'},c.signal)).rejects.toThrow(/interrupt/i);});
+it('blocks incomplete or reachable containment evidence',async()=>{const {proveContainment}=await import('../src/adapters/docker/containment.js');await expect(proveContainment({exec:async()=> '[]'} as any,['owned'],AbortSignal.timeout(100))).rejects.toThrow(/containment/);await expect(proveContainment({exec:async()=>JSON.stringify([{reachable:true}])} as any,['owned'],AbortSignal.timeout(100))).rejects.toThrow(/containment/);});

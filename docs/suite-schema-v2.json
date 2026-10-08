@@ -1,0 +1,2254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 2
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "draft": {
+      "default": false,
+      "type": "boolean"
+    },
+    "redactValues": {
+      "default": [],
+      "maxItems": 100,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 4096
+      }
+    },
+    "runtime": {
+      "type": "string",
+      "enum": [
+        "cloud",
+        "docker"
+      ]
+    },
+    "llm": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "mock",
+            "local",
+            "replay"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "enum": [
+            "ollama",
+            "openai-compatible"
+          ]
+        },
+        "endpoint": {
+          "type": "string",
+          "format": "uri"
+        },
+        "model": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "preferences": {
+          "maxItems": 20,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          }
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2147483647
+        },
+        "maxOutputTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2048
+        },
+        "contextTokens": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8192
+        },
+        "timeoutMs": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 60000
+        },
+        "maxCalls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 20
+        },
+        "record": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "replay": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "replayHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "identities": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      },
+      "additionalProperties": false
+    },
+    "tests": {
+      "minItems": 1,
+      "maxItems": 20,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "workflow": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "steps": {
+            "default": [],
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "input": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "json"
+                    },
+                    "fixture": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 512
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "fixture"
+                  ],
+                  "additionalProperties": false
+                },
+                "assertions": {
+                  "minItems": 1,
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "anyOf": [
+                      {
+                        "oneOf": [
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "execution.status"
+                              },
+                              "equals": {
+                                "type": "string",
+                                "enum": [
+                                  "success",
+                                  "error",
+                                  "canceled",
+                                  "crashed"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "node.count"
+                              },
+                              "nodeId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "runIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "outputIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "equals": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "nodeId",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "node.json"
+                              },
+                              "nodeId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "runIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "outputIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "itemIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "pointer": {
+                                "type": "string",
+                                "maxLength": 512
+                              },
+                              "equals": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "nodeId",
+                              "pointer",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "node.executed"
+                              },
+                              "nodeId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "equals": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "nodeId",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "requests.count"
+                              },
+                              "mockId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "equals": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "mockId",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "request.json"
+                              },
+                              "mockId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "requestIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "pointer": {
+                                "type": "string",
+                                "maxLength": 512
+                              },
+                              "equals": {
+                                "$ref": "#/$defs/__schema0"
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "mockId",
+                              "pointer",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "target": {
+                                "type": "string",
+                                "const": "request.header"
+                              },
+                              "mockId": {
+                                "type": "string",
+                                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                              },
+                              "requestIndex": {
+                                "default": 0,
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "header": {
+                                "type": "string",
+                                "pattern": "^[a-z0-9-]+$"
+                              },
+                              "equals": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "target",
+                              "mockId",
+                              "header",
+                              "equals"
+                            ],
+                            "additionalProperties": false
+                          }
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "target": {
+                            "type": "string",
+                            "const": "node.schema"
+                          },
+                          "nodeId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                          },
+                          "runIndex": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          "outputIndex": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          "itemIndex": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          "pointer": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 512
+                          },
+                          "schema": {
+                            "properties": {
+                              "type": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "object",
+                                      "array",
+                                      "string",
+                                      "number",
+                                      "integer",
+                                      "boolean",
+                                      "null"
+                                    ]
+                                  },
+                                  {
+                                    "minItems": 1,
+                                    "maxItems": 7,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "enum": [
+                                        "object",
+                                        "array",
+                                        "string",
+                                        "number",
+                                        "integer",
+                                        "boolean",
+                                        "null"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "required": {
+                                "maxItems": 100,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                                }
+                              },
+                              "properties": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/$defs/__schema1"
+                                }
+                              },
+                              "additionalProperties": {
+                                "type": "boolean"
+                              },
+                              "enum": {
+                                "minItems": 1,
+                                "maxItems": 100,
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/$defs/__schema3"
+                                }
+                              },
+                              "items": {
+                                "$ref": "#/$defs/__schema1"
+                              },
+                              "minLength": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "maxLength": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "minimum": {
+                                "type": "number"
+                              },
+                              "maximum": {
+                                "type": "number"
+                              },
+                              "minItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "maxItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              }
+                            },
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        },
+                        "required": [
+                          "target",
+                          "nodeId",
+                          "schema"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "target": {
+                            "type": "string",
+                            "const": "request.schema"
+                          },
+                          "mockId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                          },
+                          "requestIndex": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000
+                          },
+                          "pointer": {
+                            "default": "",
+                            "type": "string",
+                            "maxLength": 512
+                          },
+                          "schema": {
+                            "properties": {
+                              "type": {
+                                "anyOf": [
+                                  {
+                                    "type": "string",
+                                    "enum": [
+                                      "object",
+                                      "array",
+                                      "string",
+                                      "number",
+                                      "integer",
+                                      "boolean",
+                                      "null"
+                                    ]
+                                  },
+                                  {
+                                    "minItems": 1,
+                                    "maxItems": 7,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string",
+                                      "enum": [
+                                        "object",
+                                        "array",
+                                        "string",
+                                        "number",
+                                        "integer",
+                                        "boolean",
+                                        "null"
+                                      ]
+                                    }
+                                  }
+                                ]
+                              },
+                              "required": {
+                                "maxItems": 100,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                                }
+                              },
+                              "properties": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string",
+                                  "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                                },
+                                "additionalProperties": {
+                                  "$ref": "#/$defs/__schema1"
+                                }
+                              },
+                              "additionalProperties": {
+                                "type": "boolean"
+                              },
+                              "enum": {
+                                "minItems": 1,
+                                "maxItems": 100,
+                                "type": "array",
+                                "items": {
+                                  "$ref": "#/$defs/__schema3"
+                                }
+                              },
+                              "items": {
+                                "$ref": "#/$defs/__schema1"
+                              },
+                              "minLength": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "maxLength": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "minimum": {
+                                "type": "number"
+                              },
+                              "maximum": {
+                                "type": "number"
+                              },
+                              "minItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              },
+                              "maxItems": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 1000
+                              }
+                            },
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        },
+                        "required": [
+                          "target",
+                          "mockId",
+                          "schema"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "target": {
+                            "type": "string",
+                            "const": "table.count"
+                          },
+                          "tableId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                          },
+                          "equals": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 1000
+                          }
+                        },
+                        "required": [
+                          "target",
+                          "tableId",
+                          "equals"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "target": {
+                            "type": "string",
+                            "const": "table.row"
+                          },
+                          "tableId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                          },
+                          "key": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string",
+                                "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                              },
+                              "value": {
+                                "$ref": "#/$defs/__schema4"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "pointer": {
+                            "type": "string",
+                            "maxLength": 512
+                          },
+                          "equals": {
+                            "$ref": "#/$defs/__schema5"
+                          }
+                        },
+                        "required": [
+                          "target",
+                          "tableId",
+                          "key",
+                          "pointer",
+                          "equals"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "input",
+                "assertions"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "input": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "json"
+                  },
+                  "fixture": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  }
+                },
+                "required": [
+                  "kind",
+                  "fixture"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "file"
+                  },
+                  "fixture": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 512
+                  },
+                  "field": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "mimeType": {
+                    "type": "string",
+                    "enum": [
+                      "image/png",
+                      "image/jpeg",
+                      "image/webp",
+                      "application/pdf"
+                    ]
+                  }
+                },
+                "required": [
+                  "kind",
+                  "fixture",
+                  "field",
+                  "mimeType"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "triggerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+          },
+          "timeoutMs": {
+            "default": 30000,
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 120000
+          },
+          "trust": {
+            "type": "object",
+            "properties": {
+              "sourceHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "reviewedExpressions": {
+                "type": "boolean",
+                "const": true
+              },
+              "reviewedCode": {
+                "default": [],
+                "maxItems": 200,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "nodeId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                    },
+                    "codeHash": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "noExternalEffects": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "nodeId",
+                    "codeHash",
+                    "noExternalEffects"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "sourceHash"
+            ],
+            "additionalProperties": false
+          },
+          "nodeMocks": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "expectedParametersHash": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "mockPath": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "pattern": "^\\/[A-Za-z0-9/_-]*$"
+                }
+              },
+              "required": [
+                "nodeId",
+                "expectedParametersHash",
+                "mockPath"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "subworkflows": {
+            "default": [],
+            "maxItems": 5,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "expectedWorkflowId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "workflow": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 512
+                },
+                "triggerId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "trust": {
+                  "type": "object",
+                  "properties": {
+                    "sourceHash": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "reviewedExpressions": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "reviewedCode": {
+                      "default": [],
+                      "maxItems": 200,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nodeId": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                          },
+                          "codeHash": {
+                            "type": "string",
+                            "pattern": "^[a-f0-9]{64}$"
+                          },
+                          "noExternalEffects": {
+                            "type": "boolean",
+                            "const": true
+                          }
+                        },
+                        "required": [
+                          "nodeId",
+                          "codeHash",
+                          "noExternalEffects"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "sourceHash"
+                  ],
+                  "additionalProperties": false
+                },
+                "tableBindings": {
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "nodeId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                      },
+                      "expectedResourceId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 128
+                      },
+                      "tableId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                      },
+                      "fault": {
+                        "type": "string",
+                        "const": "missing-table"
+                      }
+                    },
+                    "required": [
+                      "nodeId",
+                      "expectedResourceId",
+                      "tableId"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "nodeId",
+                "expectedWorkflowId",
+                "workflow",
+                "triggerId",
+                "trust",
+                "tableBindings"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "bindings": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "expectedUrl": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2048
+                },
+                "mockPath": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "pattern": "^\\/[A-Za-z0-9/_-]*$"
+                },
+                "protocol": {
+                  "default": "http-json",
+                  "type": "string",
+                  "enum": [
+                    "http-json",
+                    "openai-chat"
+                  ]
+                }
+              },
+              "required": [
+                "nodeId",
+                "expectedUrl",
+                "mockPath"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "tables": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "columns": {
+                  "minItems": 1,
+                  "maxItems": 64,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "string",
+                          "number",
+                          "boolean"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "name",
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "seedRows": {
+                  "default": [],
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema6"
+                    }
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "columns"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "tableBindings": {
+            "default": [],
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "nodeId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "expectedResourceId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "tableId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                },
+                "fault": {
+                  "type": "string",
+                  "const": "missing-table"
+                }
+              },
+              "required": [
+                "nodeId",
+                "expectedResourceId",
+                "tableId"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "mocks": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "PATCH",
+                    "DELETE",
+                    "HEAD"
+                  ]
+                },
+                "path": {
+                  "type": "string",
+                  "maxLength": 256,
+                  "pattern": "^\\/[a-zA-Z0-9/_-]*$"
+                },
+                "headers": {
+                  "default": {},
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "pattern": "^[a-z0-9-]+$"
+                  },
+                  "additionalProperties": {
+                    "type": "string",
+                    "maxLength": 4096
+                  }
+                },
+                "bodyFields": {
+                  "default": {},
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string",
+                    "maxLength": 512
+                  },
+                  "additionalProperties": {
+                    "$ref": "#/$defs/__schema0"
+                  }
+                },
+                "responses": {
+                  "minItems": 1,
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "json"
+                          },
+                          "status": {
+                            "type": "integer",
+                            "minimum": 200,
+                            "maximum": 599
+                          },
+                          "json": {
+                            "$ref": "#/$defs/__schema0"
+                          },
+                          "delayMs": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5000
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "status",
+                          "json"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "text"
+                          },
+                          "contentType": {
+                            "type": "string",
+                            "enum": [
+                              "text/plain",
+                              "application/rss+xml",
+                              "application/xml",
+                              "text/xml"
+                            ]
+                          },
+                          "status": {
+                            "type": "integer",
+                            "minimum": 200,
+                            "maximum": 599
+                          },
+                          "text": {
+                            "type": "string",
+                            "maxLength": 65536
+                          },
+                          "delayMs": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5000
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "status",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "const": "malformed-json"
+                          },
+                          "status": {
+                            "type": "integer",
+                            "minimum": 200,
+                            "maximum": 599
+                          },
+                          "text": {
+                            "type": "string",
+                            "maxLength": 65536
+                          },
+                          "delayMs": {
+                            "default": 0,
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 5000
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "status",
+                          "text"
+                        ],
+                        "additionalProperties": false
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "method",
+                "path",
+                "responses"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "assertions": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "execution.status"
+                        },
+                        "equals": {
+                          "type": "string",
+                          "enum": [
+                            "success",
+                            "error",
+                            "canceled",
+                            "crashed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "node.count"
+                        },
+                        "nodeId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "runIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "outputIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "equals": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "nodeId",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "node.json"
+                        },
+                        "nodeId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "runIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "outputIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "itemIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "pointer": {
+                          "type": "string",
+                          "maxLength": 512
+                        },
+                        "equals": {
+                          "$ref": "#/$defs/__schema0"
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "nodeId",
+                        "pointer",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "node.executed"
+                        },
+                        "nodeId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "equals": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "nodeId",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "requests.count"
+                        },
+                        "mockId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "equals": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "mockId",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "request.json"
+                        },
+                        "mockId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "requestIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "pointer": {
+                          "type": "string",
+                          "maxLength": 512
+                        },
+                        "equals": {
+                          "$ref": "#/$defs/__schema0"
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "mockId",
+                        "pointer",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "target": {
+                          "type": "string",
+                          "const": "request.header"
+                        },
+                        "mockId": {
+                          "type": "string",
+                          "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+                        },
+                        "requestIndex": {
+                          "default": 0,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "header": {
+                          "type": "string",
+                          "pattern": "^[a-z0-9-]+$"
+                        },
+                        "equals": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "target",
+                        "mockId",
+                        "header",
+                        "equals"
+                      ],
+                      "additionalProperties": false
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "const": "node.schema"
+                    },
+                    "nodeId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                    },
+                    "runIndex": {
+                      "default": 0,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "outputIndex": {
+                      "default": 0,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "itemIndex": {
+                      "default": 0,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "pointer": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "schema": {
+                      "properties": {
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "object",
+                                "array",
+                                "string",
+                                "number",
+                                "integer",
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            {
+                              "minItems": 1,
+                              "maxItems": 7,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "object",
+                                  "array",
+                                  "string",
+                                  "number",
+                                  "integer",
+                                  "boolean",
+                                  "null"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "required": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                          }
+                        },
+                        "properties": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        },
+                        "additionalProperties": {
+                          "type": "boolean"
+                        },
+                        "enum": {
+                          "minItems": 1,
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema3"
+                          }
+                        },
+                        "items": {
+                          "$ref": "#/$defs/__schema1"
+                        },
+                        "minLength": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "maxLength": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "minimum": {
+                          "type": "number"
+                        },
+                        "maximum": {
+                          "type": "number"
+                        },
+                        "minItems": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "maxItems": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        }
+                      },
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
+                  "required": [
+                    "target",
+                    "nodeId",
+                    "schema"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "const": "request.schema"
+                    },
+                    "mockId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                    },
+                    "requestIndex": {
+                      "default": 0,
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    },
+                    "pointer": {
+                      "default": "",
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "schema": {
+                      "properties": {
+                        "type": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "enum": [
+                                "object",
+                                "array",
+                                "string",
+                                "number",
+                                "integer",
+                                "boolean",
+                                "null"
+                              ]
+                            },
+                            {
+                              "minItems": 1,
+                              "maxItems": 7,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "enum": [
+                                  "object",
+                                  "array",
+                                  "string",
+                                  "number",
+                                  "integer",
+                                  "boolean",
+                                  "null"
+                                ]
+                              }
+                            }
+                          ]
+                        },
+                        "required": {
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                          }
+                        },
+                        "properties": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string",
+                            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        },
+                        "additionalProperties": {
+                          "type": "boolean"
+                        },
+                        "enum": {
+                          "minItems": 1,
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/$defs/__schema3"
+                          }
+                        },
+                        "items": {
+                          "$ref": "#/$defs/__schema1"
+                        },
+                        "minLength": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "maxLength": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "minimum": {
+                          "type": "number"
+                        },
+                        "maximum": {
+                          "type": "number"
+                        },
+                        "minItems": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        },
+                        "maxItems": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 1000
+                        }
+                      },
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
+                  "required": [
+                    "target",
+                    "mockId",
+                    "schema"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "const": "table.count"
+                    },
+                    "tableId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                    },
+                    "equals": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000
+                    }
+                  },
+                  "required": [
+                    "target",
+                    "tableId",
+                    "equals"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "target": {
+                      "type": "string",
+                      "const": "table.row"
+                    },
+                    "tableId": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9_-]{1,64}$"
+                    },
+                    "key": {
+                      "type": "object",
+                      "properties": {
+                        "field": {
+                          "type": "string",
+                          "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+                        },
+                        "value": {
+                          "$ref": "#/$defs/__schema4"
+                        }
+                      },
+                      "required": [
+                        "field",
+                        "value"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "pointer": {
+                      "type": "string",
+                      "maxLength": 512
+                    },
+                    "equals": {
+                      "$ref": "#/$defs/__schema5"
+                    }
+                  },
+                  "required": [
+                    "target",
+                    "tableId",
+                    "key",
+                    "pointer",
+                    "equals"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "verificationKind": {
+            "type": "string",
+            "enum": [
+              "smoke",
+              "baseline",
+              "behavior"
+            ]
+          },
+          "llm": {
+            "type": "object",
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "mock",
+                  "local",
+                  "replay"
+                ]
+              },
+              "provider": {
+                "type": "string",
+                "enum": [
+                  "ollama",
+                  "openai-compatible"
+                ]
+              },
+              "endpoint": {
+                "type": "string",
+                "format": "uri"
+              },
+              "model": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "preferences": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "maxLength": 256
+                }
+              },
+              "temperature": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "seed": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 2147483647
+              },
+              "maxOutputTokens": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 2048
+              },
+              "contextTokens": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 8192
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 60000
+              },
+              "maxCalls": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 20
+              },
+              "record": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "replay": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "replayHash": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              },
+              "identities": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "workflow",
+          "input",
+          "mocks",
+          "assertions",
+          "verificationKind"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "name",
+    "tests"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          }
+        }
+      ]
+    },
+    "__schema1": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "object",
+                "array",
+                "string",
+                "number",
+                "integer",
+                "boolean",
+                "null"
+              ]
+            },
+            {
+              "minItems": 1,
+              "maxItems": 7,
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "object",
+                  "array",
+                  "string",
+                  "number",
+                  "integer",
+                  "boolean",
+                  "null"
+                ]
+              }
+            }
+          ]
+        },
+        "required": {
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+          }
+        },
+        "properties": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[A-Za-z_][A-Za-z0-9_]{0,63}$"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema1"
+          }
+        },
+        "additionalProperties": {
+          "type": "boolean"
+        },
+        "enum": {
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema2"
+          }
+        },
+        "items": {
+          "$ref": "#/$defs/__schema1"
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "maxLength": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "minItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "maxItems": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        }
+      },
+      "additionalProperties": false
+    },
+    "__schema2": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema2"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema2"
+          }
+        }
+      ]
+    },
+    "__schema3": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema3"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema3"
+          }
+        }
+      ]
+    },
+    "__schema4": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema4"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema4"
+          }
+        }
+      ]
+    },
+    "__schema5": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema5"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema5"
+          }
+        }
+      ]
+    },
+    "__schema6": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema6"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema6"
+          }
+        }
+      ]
+    }
+  }
+}

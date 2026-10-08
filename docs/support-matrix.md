@@ -1,31 +1,32 @@
-# Support matrix — 7 October 2026
+# Qualified support — 8 October 2026
 
-Only the named instance and tested subset below are verified. n8n runtime version is not exposed by the documented public API endpoints used here; no runtime version is invented. The retrieved public OpenAPI identifies its API specification version as 1.1.1. Current Cloud lifecycle includes publish/unpublish; activation/deactivation aliases are advertised too.
+Inventory accepts up to 500 nodes/1 MiB. V2 execution accepts up to 200 qualified nodes; v1 retains its original 20-node profile. A recognized type alone never grants execution. Parameter shapes, edges, expressions and dependency bindings are validated before mutation.
 
-| Area | Implemented support | Verification |
+| Capability | Qualified subset | Fresh verification |
 | --- | --- | --- |
-| Runtime adapter | n8n Cloud public API + POST production webhooks | Real yaumo.app.n8n.cloud executions, saved includeData and exact-ID cleanup |
-| Webhook | n8n-nodes-base.webhook v2, POST, immediate response, one trigger | Real Cloud; 200 alone never means completed |
-| Edit Fields/Set | n8n-nodes-base.set v3.4, manual string/number/boolean assignments, simple $json references | String mapping and handled-error assignment verified live; numeric/boolean fields not live verified |
-| If | n8n-nodes-base.if v2.2, strict string/number/boolean condition allowlist, AND/OR | String notEmpty with true/false branches verified live; other operations unit/schema only |
-| Filter | n8n-nodes-base.filter v2.2, same explicit condition grammar | String equals and dropped-item detection verified live |
-| No Operation | n8n-nodes-base.noOp v1 | Rejected input branch verified live |
-| HTTP Request | n8n-nodes-base.httpRequest v4.2; literal gateway URL; fake x-api-key/x-fake-* headers; JSON field body; redirects disabled; response JSON/text; onError stop/regular/error output; explicit bounded retries | POST JSON, fake header, 429 then success, 500 error output, timeout, malformed JSON and text verified live. Other methods/regular error continuation not live verified |
-| Destinations | {{WFCHECK_GATEWAY}}/literal-path only | Copy validation and real captured requests; not transparent interception |
-| Correlation | unique workflow plus marker in saved Webhook headers; exact ID detail confirmation | Real Cloud; never latest-execution selection |
-| Intermediate evidence | each actual node run/output/item normalized under stable node ID | Real Cloud mapping, branch/filter, HTTP/error path |
-| Missing evidence | strict failure if required saved data/terminal correlation is absent | Unit and actual Cloud saving-disabled capability probe; no fabricated intermediate results |
-| Gateway | auth, method/path/header/body matching, status, ordered sequences, JSON/text/malformed, delay, quotas, sealed namespace/body-drain isolation | Real local HTTP tests; listed fault responses and capture verified from Cloud |
-| Reporters | console, versioned JSON, JUnit failure/error distinction | Unit tests and live Cloud report artifacts |
-| CLI | init, doctor, run, manifest cleanup | Source CLI verified; package evidence recorded in feasibility |
-| Automatic Cloudflare tunnel | process lifecycle + authenticated local HTTPS probe | Tunnel/probe worked with isolated resolver; Cloud-origin hostname DNS failed. Full Cloud execution via this transport unverified |
-| External Localtunnel | configure HTTPS origin + fixed loopback port | Actual Cloud traffic and repeat suites verified; user-managed tunnel lifecycle |
-| TLS | standard HTTPS verification retained | Successful ordinary HTTPS; no interception or test CA |
-| Cleanup | precise workflow/execution IDs, stop/delete, bounded 409 retry, already-absent recovery | Real Cloud cleanup/recovery plus unit tests; preservation/interrupt evidence in feasibility |
-| Node 24 / package | one TypeScript package, npm lockfile, Apache-2.0 original code | Build/test/pack evidence in feasibility |
-| Container runtime | future adapter interface only | Docker daemon 29.5.3 available, but no user-supplied pinned n8n image |
-| Native integrations and unchanged destinations | unsupported | No native operation/interception proof; separate gate unverified |
-| Instance-wide outbound containment | unsupported | Cloud gateway is not an egress firewall; no bypass/IPv4/IPv6 containment proof |
-| Other workflow nodes/versions/operations | rejected | Unsupported tests exit 2 before mutation |
+| Offline inspect/plan | Full node/dependency/edge inventory, diagnostics, deterministic draft scenarios; optional inferred local suggestions | Unit tests, installed-package onboarding, real local assistant |
+| Managed Docker | n8n/runner 2.42.4 by architecture-specific digest; documented entity bootstrap, ephemeral owner/key/project/state | macOS arm64 Docker 29.5.3, actual native execution; amd64 pins unqualified here |
+| Docker containment | n8n/runner internal network; gateway alone has uplink; fixed ingress peer, loopback port, no host socket/mounts | Startup and explicit IPv4/IPv6/DNS/host-model reachability probes |
+| Cloud | Authenticated public discovery/API, exact per-run copies | Authorized development instance; runtime version not exposed by used public APIs |
+| Webhook v2 | POST/onReceived or lastNode, selected intake | Actual Cloud/Docker; unique saved correlation marker; synchronous errors still require saved terminal evidence |
+| Form Trigger v2.2 | Single ASCII-named file field, Basic auth, actual multipart; lastNode/onReceived; native completion text | Actual image/PDF upload, unauthorized GET rejected, filename/metadata correlation |
+| Code v2 | runOnceForAllItems, up to 256 KiB, exact source/Code hash and noExternalEffects review; source-pinned expression review | Actual reviewed bundled Code on external runner; arbitrary unreviewed Code rejected |
+| Extract from File v1 | PDF, bounded pages, joinPages, native binary property | Actual text PDF fast path; no simulated PDF output |
+| Set v3.4 / If, Filter v2.2 / NoOp v1 | Existing strict assignments/conditions, simple $json paths and literal empty-string fallback | Mapping, branches, filtering; other allowed scalar operators unit/schema verified |
+| HTTP Request v4.2 | Exact source string binding (literal or reviewed expression), JSON bodies, bounded retries, JSON/text/RSS/malformed/status/delay mocks, redirects disabled | Actual requests/error branches/retry; Gmail API read and RSS validation over isolated mock HTTP; source credentials stripped |
+| Data Table v1/v1.1 | row get/upsert/update, equality write filters, declared columns/owned mapping, bounded complete row evidence | Native rows, seeded manual-column preservation, repeated native upserts, exact missing-table fault |
+| Schedule v1.2 / Execute Workflow Trigger v1.1 | Alternate roots inventoried; recurring triggers disabled in test copies | Actual native-trigger copies; source exports unchanged |
+| Execute Workflow v1.3 | One level, database/literal pinned source ID, once/wait/passThrough; managed Docker, shared declared owned tables | Actual email/RSS parents and native processing children; child published first, external child intakes disabled |
+| Gmail v2.1 send boundary | Explicit parameter-hash-pinned replacement with authenticated mock HTTP, original recipient/subject/message expressions | Mocked send decisions and replay; native Gmail transport/OAuth unqualified by these tests |
+| Durable steps | Up to eight JSON replays in deterministic mock mode, same native workflow/tables, distinct saved correlations, per-phase request evidence | Repeat ingestion, manual status preservation, duplicate digest suppression and uncertain-send hold |
+| Chat OpenAI v1.3 + Basic LLM Chain v1.9 | Qualified ai_languageModel edge, one model per chain, non-streaming chat completion, responsesApi false | Native deterministic mock, actual physical local inference and strict replay |
+| Local service | Installed physical Ollama artifacts, explicit local endpoint, capability/digest frozen; compatible service needs operator manifest | Earlier qwen2.5:0.5b native inference/replay; fresh qwen3.5:9b structured planning with advertised thinking disabled; no hosted alias inference |
+| Recording/replay | Immutable private bounded recordings with explicit approval hash/source/fixture/model/settings/request/response checks | Record then replay with inference unavailable; exhausted/mismatched records fail |
+| Observations | Stable node/run/output/item indices, request assertions, bounded schema subset, table rows/count | Actual intermediate outputs/table evidence; missing evidence is error |
+| Recovery | Exact intents/IDs/names/parents/daemon/labels; independent deletion; no prefix pruning | Partial-create/cleanup-failure unit tests, actual Docker/Cloud cleanup and sentinel preservation |
+| CLI/package | init/help/inspect/plan/doctor/run/cleanup, exit 0/1/2; private JSON/JUnit reports | Clean consumer installed from npm pack |
+| HTTPS tunnel | Automatic cloudflared or externally managed temporary HTTPS | Fresh Cloudflare Quick Tunnel passed 10/10 Cloud cases; Localtunnel later produced HTTP 408/502; earlier Cloudflare DNS failure retained |
 
-The initial failed transport/timeout/cleanup attempts are preserved in feasibility. Successful configurable-URL HTTP tests do not establish native-node support, unmodified-destination interception, containment or universal runtime fidelity.
+Other providers, streaming/tools/agents, unreviewed expressions, shell/DB/community nodes, native email transports, multi-file triggers, recursive/Cloud children, child outbound/model transports, wait/resume and other table operations are inventoried but rejected until separately qualified. Other model-node versions do not inherit native execution support. Inline vision bodies are bounded at 64 KiB; larger image workflows need a separately qualified transport. Ollama is discovered, not automatically installed/downloaded.
+
+Docker containment reduces accidental external effects but is not a hostile-code sandbox. Cloud cannot prove instance-wide outbound containment. Current broad-coverage evidence and known limits are in [acceptance](acceptance/generic-workflow-testing.md).

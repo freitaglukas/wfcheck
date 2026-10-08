@@ -1,0 +1,11 @@
+import {z} from 'zod';import type {LogicalTable} from '../spec/normalized.js';import {HarnessError} from './errors.js';
+const column=z.string().regex(/^[A-Za-z_][A-Za-z0-9_]{0,63}$/),scalar=z.union([z.string(),z.number(),z.boolean(),z.null()]);
+const locator=z.union([z.string().min(1).max(128),z.strictObject({__rl:z.literal(true),value:z.string().min(1).max(128),mode:z.enum(['id','list']),cachedResultName:z.string().optional(),cachedResultUrl:z.string().optional()})]);
+const filters=z.strictObject({conditions:z.array(z.strictObject({keyName:column,condition:z.literal('eq'),keyValue:scalar})).max(10)});
+const base={resource:z.literal('row'),dataTableId:locator,matchType:z.literal('allConditions'),filters};
+const schemaColumn=z.strictObject({id:column,displayName:z.string(),required:z.boolean(),defaultMatch:z.boolean(),display:z.boolean(),type:z.enum(['string','number','boolean']),canBeUsedToMatch:z.boolean(),removed:z.boolean().optional(),readOnly:z.boolean().optional()});
+const node=z.discriminatedUnion('operation',[
+ z.strictObject({...base,operation:z.literal('get'),returnAll:z.literal(false),limit:z.int().min(1).max(1001)}),
+ z.strictObject({...base,operation:z.enum(['upsert','update']),columns:z.strictObject({mappingMode:z.literal('defineBelow'),value:z.record(column,scalar),matchingColumns:z.array(column).length(0),schema:z.array(schemaColumn).max(64),attemptToConvertTypes:z.literal(false).optional(),convertFieldsToString:z.literal(false).optional()}),options:z.strictObject({})})
+]);
+export function validateTableNode(params:Record<string,any>,table:LogicalTable){const parsed=node.parse(params);if(parsed.operation!=='get'&&!parsed.filters.conditions.length)throw new HarnessError('CONFIG','Writes require an explicit stable row filter');if(parsed.filters.conditions.some(c=>!table.columns.some(col=>col.name===c.keyName)))throw new HarnessError('CONFIG','Filter column is not in the owned schema');if(parsed.operation!=='get'){if(Object.keys(parsed.columns.value).some(k=>!table.columns.some(c=>c.name===k))||parsed.columns.schema.some(s=>!table.columns.some(c=>c.name===s.id&&c.type===s.type)))throw new HarnessError('CONFIG','Write mapping differs from declared owned columns');if(!Object.keys(parsed.columns.value).length)throw new HarnessError('CONFIG','Upsert requires an explicit owned field mapping');}}

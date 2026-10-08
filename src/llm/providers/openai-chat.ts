@@ -1,0 +1,5 @@
+import {z} from 'zod';import {jsonSchemaNode} from '../../spec/schema-v2.js';
+const image=z.string().max(65536).regex(/^data:image\/(?:png|jpeg|webp);base64,[A-Za-z0-9+/]+={0,2}$/);
+const part=z.discriminatedUnion('type',[z.strictObject({type:z.literal('text'),text:z.string().max(65536)}),z.strictObject({type:z.literal('image_url'),image_url:z.strictObject({url:image,detail:z.enum(['auto','low','high']).optional()})})]);
+const schema=z.strictObject({type:z.literal('json_schema'),json_schema:z.strictObject({name:z.string().regex(/^[A-Za-z0-9_-]{1,64}$/),strict:z.boolean().optional(),schema:jsonSchemaNode})});
+export const chatRequestSchema=z.strictObject({messages:z.array(z.strictObject({role:z.enum(['system','user','assistant']),content:z.union([z.string().max(65536),z.array(part).min(1).max(10)])})).min(1).max(50),responseFormat:z.union([z.strictObject({type:z.literal('json_object')}),schema]).optional()}).refine(v=>Buffer.byteLength(JSON.stringify(v))<=65536,'Chat request exceeds 64 KiB');

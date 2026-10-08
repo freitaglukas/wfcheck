@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "scope": "Generic CLI and runtime integration verification",
+  "sourceCommit": "30134ee28966c8f239b1845e70453dcc7d5937a9",
+  "ci": {
+    "url": "https://github.com/freitaglukas/wfcheck/actions/runs/37793541536",
+    "verify": {
+      "conclusion": "success",
+      "offlineTests": 201,
+      "testFiles": 58,
+      "build": "passed",
+      "installedPackageSmoke": "passed",
+      "productionDependencyAudit": "passed"
+    },
+    "dockerE2e": {
+      "conclusion": "success",
+      "platform": "ubuntu-24.04-arm",
+      "tests": 13,
+      "testFiles": 12,
+      "durationSeconds": 1320.64
+    }
+  },
+  "runtime": {
+    "n8nVersion": "2.42.4",
+    "externalRunnerVersion": "2.42.4",
+    "imagePins": "docker/images.json",
+    "operations": ["documented-entity-bootstrap", "public-api", "external-runner"]
+  },
+  "consumerArtifacts": "Maintained in each consumer project; not part of this package"
+}
