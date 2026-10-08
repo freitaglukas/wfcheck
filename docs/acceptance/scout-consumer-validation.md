@@ -28,7 +28,7 @@ workflow, saved execution, source, fixture, catalog and runtime identities.
 Subsequent independent review repaired planning readiness for steps, child
 sources/entries and the conservative execution ceiling, plus boolean disabled
 flags and the 256 KiB UTF-8 Code limit. All consumer suites passed fresh preflight.
-The latest source passed 199 offline CLI tests and TypeScript build; the consumer
+The merged source passed 201 offline CLI tests and TypeScript build; the consumer
 passed 92 tests and its checks. Installed-package smoke passed and production
 npm audit found zero vulnerabilities. The focused review had no remaining findings.
 
