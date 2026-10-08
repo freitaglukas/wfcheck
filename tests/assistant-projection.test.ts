@@ -9,3 +9,15 @@ it('groups repeated requirements so a 25-node workflow fits the same bounded pro
  expect(Buffer.byteLength(JSON.stringify(projection))).toBeLessThanOrEqual(5000);
  expect(JSON.stringify(projection.requirements)).toContain(nodes[24]!.id);
 });
+it('bounds unique requirement node IDs per kind and reports omitted IDs after deduplication',()=>{
+ const nodes=Array.from({length:100},(_,i)=>({id:'n'+i,name:'Node '+i,type:'n8n-nodes-base.noOp',typeVersion:1,position:[0,0],parameters:{}}));
+ const draft=buildDraft(analyzeWorkflow(JSON.stringify({name:'many requirements',nodes,connections:{}})));
+ draft.unresolved=nodes.flatMap(n=>[0,1].map(copy=>({id:n.id+'-'+copy,nodeId:n.id,kind:'http-binding',summary:'Binding required',provenance:{source:'deterministic' as const}})));
+ draft.unresolved.push({id:'review',nodeId:'n99',kind:'code-review',summary:'Review required',provenance:{source:'user'}});
+ const projection=assistantProjection(draft,{});
+ expect(projection.requirements).toEqual([
+  {kind:'http-binding',nodeIds:nodes.slice(0,25).map(n=>n.id),omittedNodeIds:75},
+  {kind:'code-review',nodeIds:['n99'],omittedNodeIds:0}
+ ]);
+ expect(Buffer.byteLength(JSON.stringify(projection))).toBeLessThanOrEqual(5000);
+});

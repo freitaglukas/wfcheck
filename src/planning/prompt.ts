@@ -17,7 +17,10 @@ export function assistantProjection(draft:DraftPlan,input:AssistantInput){
   sourceHash:draft.sourceHash,nodeCount:draft.analysis.nodes.length,omittedNodes:draft.analysis.nodes.length-nodes.length,
   nodeColumns:['id','typeIndex','version','effect','codeHashIndex'],nodeTypes,codeHashes,
   nodes:nodes.map(n=>[n.id,nodeTypes.indexOf(n.type),n.typeVersion,n.capabilities?.effect??null,n.code?codeHashes.indexOf(n.code.sha256):null]),
-  requirements:[...new Set(draft.unresolved.map(r=>r.kind))].map(kind=>({kind,nodeIds:[...new Set(draft.unresolved.filter(r=>r.kind===kind&&r.nodeId).map(r=>r.nodeId))]})),
+  requirements:[...new Set(draft.unresolved.map(r=>r.kind))].map(kind=>{
+   const ids=[...new Set(draft.unresolved.filter(r=>r.kind===kind&&r.nodeId).map(r=>r.nodeId))];
+   return {kind,nodeIds:ids.slice(0,25),omittedNodeIds:Math.max(0,ids.length-25)};
+  }),
   triggers:draft.analysis.triggers,requirementsText:input.requirements?redactor.text(input.requirements).slice(0,1500):undefined,code
  };
  if(Buffer.byteLength(JSON.stringify(projection))>5000)throw new HarnessError('CONFIG','Reviewed assistant projection exceeds its context budget');

@@ -40,6 +40,17 @@ the source resolved for each exact candidate path; absent/mismatched source
 blocks readiness. The additional regression brings the offline suite to 175
 tests. No paid review credits were enabled.
 
+The follow-up CLI review and GitHub review through `98c5482` completed with
+zero new findings. A subsequent Scout/replay commit (`ceb9182`) advanced the
+PR while CI was running. The GitHub app rate-limited that change; a free
+open-source CLI delta review completed across its 38 files with two minor
+findings. Both were reproduced before fixing: malformed node entries could
+throw during single-trigger graph reachability, and grouped assistant
+requirements omitted the intended 25-unique-node limit. Inspection now keeps
+malformed-node diagnostics without throwing, and each requirement kind caps
+unique IDs at 25 and reports `omittedNodeIds`. Regression tests cover mixed
+non-object entries, duplicate requirement IDs and independent kind groups.
+
 Post-fix CI and any independent re-review are recorded on the PR against the
 updated commit; the original CodeRabbit result is not represented as a
 post-fix review.

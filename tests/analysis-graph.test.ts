@@ -16,3 +16,10 @@ it('inventories 201 nodes without applying the old execution ceiling',()=>{
  expect(a.nodes).toHaveLength(201);
 });
 it('never emits malformed raw identities through graph edges',()=>{const raw={name:'graph',nodes:[{id:'secret with spaces',name:'Start',type:'n8n-nodes-base.webhook',typeVersion:2,parameters:{}},{id:'out',name:'Out',type:'n8n-nodes-base.noOp',typeVersion:1,parameters:{}}],connections:{Start:{main:[[{node:'Out',type:'main',index:0}]]}}};const result=analyzeWorkflow(JSON.stringify(raw));expect(JSON.stringify(result)).not.toContain('secret with spaces');expect(result.edges[0]?.from).toBe('node-0');});
+it('retains malformed-node diagnostics without throwing during single-trigger reachability',()=>{
+ const input={id:'input',name:'input',type:'n8n-nodes-base.webhook',typeVersion:2,position:[0,0],parameters:{httpMethod:'POST',path:'input',responseMode:'onReceived',options:{}}};
+ const result=analyzeWorkflow(JSON.stringify({name:'malformed',nodes:[input,null,42,'invalid',true,[],node('out')],connections:{input:{main:[[{node:'out',type:'main',index:0}]]}}}));
+ expect(result.status).toBe('unsupported');
+ expect(result.diagnostics.filter(d=>d.code==='INVALID_NODE')).toHaveLength(5);
+ expect(result.edges).toEqual([{from:'input',to:'out',connectionType:'main',outputIndex:0,inputIndex:0}]);
+});
