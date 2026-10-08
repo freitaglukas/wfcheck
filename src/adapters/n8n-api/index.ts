@@ -1,5 +1,5 @@
 import {requireActive} from '../../runtime/cancellation.js';
-import {createTables,collectTables,type OwnedTable} from './tables.js';
+import {createTables,bindTables,collectTables,type OwnedTable} from './tables.js';
 import {randomBytes,randomUUID} from 'node:crypto';import {N8nCloudAdapter} from '../n8n-cloud/index.js';import {CloudClient,ApiError} from '../n8n-cloud/client.js';import {Manifest} from '../../runtime/manifest.js';import {ResourceJournal,type OwnedRecord} from '../../runtime/journal.js';import {createOwned,recoverOwned} from './resources.js';import {apiRecovery} from './recovery.js';import {submitTrigger,type TriggerAuth} from './trigger.js';import {HarnessError} from '../../security/errors.js';import {redactor} from '../../security/redact.js';import type {PreparedWorkflow,RuntimeHandle,CompiledInput,TriggerAttempt,ExecutionObservation} from '../../runtime/types.js';
 export interface ApiAdapterOptions {managedDocker?:boolean;parentId?:string;credentialReader?:(id:string)=>Promise<{id:string;name:string}>;}
 export class N8nApiAdapter extends N8nCloudAdapter {
@@ -12,12 +12,19 @@ export class N8nApiAdapter extends N8nCloudAdapter {
  async settlePreparations(){this.#preparationStop.abort();await Promise.allSettled([...this.#preparations]);}
  private async prepareImport(prepared:PreparedWorkflow,runId:string,testId:string,signal?:AbortSignal):Promise<RuntimeHandle>{
   requireActive(signal);
+  if(prepared.resources?.subworkflows?.length&&!this.options.managedDocker)throw new HarnessError('CAPABILITY','Child workflow isolation is qualified only in managed Docker');
   const copy=structuredClone(prepared),auth:TriggerAuth={user:'wfcheck',password:randomBytes(32).toString('hex')};redactor.add(auth.password);
   if(copy.trigger?.kind==='form-file'){
    const name=copy.workflow.name+'-form-auth';const credential=await createOwned(this.journal,{kind:'credential',name,testId,parentId:this.options.parentId},()=>{requireActive(signal);return this.client.request('credentials','POST',{name,type:'httpBasicAuth',data:auth},signal);});copy.workflow.nodes.find(n=>n.id===copy.trigger!.nodeId)!.credentials={httpBasicAuth:{id:credential.id,name}};
   }
   for(const n of copy.workflow.nodes.filter(n=>n.type==='@n8n/n8n-nodes-langchain.lmChatOpenAi')){requireActive(signal);const name=copy.workflow.name+'-chat-'+n.id;const credential=await createOwned(this.journal,{kind:'credential',name,testId,parentId:this.options.parentId},()=>{requireActive(signal);return this.client.request('credentials','POST',{name,type:'openAiApi',data:{apiKey:copy.modelToken,url:n.parameters.options.baseURL}},signal);});n.credentials={openAiApi:{id:credential.id,name}};}
   const tables=await createTables(this.client,this.journal,copy,testId,this.options.parentId,signal);
+  for(const child of copy.resources?.subworkflows??[]){
+   requireActive(signal);await bindTables(this.client,this.journal,child.prepared,tables,testId,this.options.parentId,signal);
+   const node=copy.workflow.nodes.find(n=>n.id===child.nodeId);if(!node||node.parameters.workflowId?.value!==child.expectedWorkflowId)throw new HarnessError('OWNERSHIP','Child binding differs from reviewed source');
+   const intent=await this.journal.begin({kind:'workflow',name:child.prepared.workflow.name,runId:this.journal.runId,testId,ownerIdentity:this.journal.ownerIdentity,parentId:this.options.parentId});
+   const h=await super.importWorkflow(child.prepared,runId,testId,signal);await this.journal.confirm(intent.intentId,h.workflowId);await super.activate(h,signal);node.parameters.workflowId={__rl:true,mode:'id',value:h.workflowId};copy.changes.push(`Subworkflow ${node.id}: native invocation of owned reviewed child ${h.workflowId}`);
+  }
   requireActive(signal);
   const intent=await this.journal.begin({kind:'workflow',name:copy.workflow.name,runId:this.journal.runId,testId,ownerIdentity:this.journal.ownerIdentity,parentId:this.options.parentId});
   const h=await super.importWorkflow(copy,runId,testId,signal);await this.journal.confirm(intent.intentId,h.workflowId);this.#tables.set(h.workflowId,tables);this.#auth.set(h.workflowId,auth);this.#testIds.set(h.workflowId,testId);return h;

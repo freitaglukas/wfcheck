@@ -20,7 +20,7 @@ import {resolveModel} from '../llm/resolve.js';
 import {resolveLlmPolicy} from '../llm/policy.js';
 import {createRuntime,type RuntimeSession} from '../runtime/factory.js';
 import { newRunId,compileSuite,runCompiled,type SuiteResult } from '../runtime/runner.js';
-import {compileSuiteV2,runCompiledV2,prepareModelSelections} from '../runtime/runner-v2.js';
+import {compileSuiteV2,runCompiledV2,plannedExecutions,prepareModelSelections} from '../runtime/runner-v2.js';
 import {N8nApiAdapter} from '../adapters/n8n-api/index.js';
 import { loadSuiteDocument } from '../spec/load.js';
 import { loadSuite } from '../spec/load.js';
@@ -88,9 +88,9 @@ program.command('run').argument('<suite>').option('--runtime <kind>','cloud or d
   const gateway=new Gateway(process.env.WFCHECK_GATEWAY_DNS_SERVER),tunnel=new TemporaryTunnel(),s=signals();let unlock:(()=>Promise<void>)|undefined;let runtime:RuntimeSession|undefined;
   try{
     await checkReportTargets(opts,reportInputs);
-    const {suite,base}=await loadSuiteDocument(path);name=suite.name;const compiled=await compileSuiteV2(suite,base,process.cwd(),{mode:opts.llm,model:opts.model,endpoint:opts.llmEndpoint,provider:opts.llmProvider,identities:opts.llmIdentities,record:opts.record,replay:opts.replay,replayHash:opts.replayHash});reportInputs.push(...compiled.flatMap(t=>[resolve(base,t.spec.workflow),resolve(base,t.spec.input.fixture),t.llm.record,t.llm.replay,t.llm.identities].filter((p):p is string=>!!p)));await checkReportTargets(opts,reportInputs);opts.runtime??=suite.runtime??'cloud';
-    const max=Number(opts.maxExecutions);if(!Number.isInteger(max)||max<1||max>20||compiled.length>max)throw new HarnessError('CONFIG','Planned suite exceeds --max-executions or the hard limit of 20');
-    await prepareModelSelections(compiled,s.signal);planned=compiled.length;console.log(`Planned n8n executions: ${planned} (serial; limit ${max}; webhook triggers are never retried)`);announced=true;
+    const {suite,base}=await loadSuiteDocument(path);name=suite.name;const compiled=await compileSuiteV2(suite,base,process.cwd(),{mode:opts.llm,model:opts.model,endpoint:opts.llmEndpoint,provider:opts.llmProvider,identities:opts.llmIdentities,record:opts.record,replay:opts.replay,replayHash:opts.replayHash});reportInputs.push(...compiled.flatMap(t=>[resolve(base,t.spec.workflow),resolve(base,t.spec.input.fixture),...t.spec.steps.map(s=>resolve(base,s.input.fixture)),...t.spec.subworkflows.map(s=>resolve(base,s.workflow)),t.llm.record,t.llm.replay,t.llm.identities].filter((p):p is string=>!!p)));await checkReportTargets(opts,reportInputs);opts.runtime??=suite.runtime??'cloud';
+    const max=Number(opts.maxExecutions);if(!Number.isInteger(max)||max<1||max>20||plannedExecutions(compiled.map(t=>t.spec),compiled.map(t=>t.source))>max)throw new HarnessError('CONFIG','Planned suite exceeds --max-executions or the hard limit of 20');
+    await prepareModelSelections(compiled,s.signal);planned=plannedExecutions(compiled.map(t=>t.spec),compiled.map(t=>t.source));console.log(`Planned n8n executions: ${planned} (serial; limit ${max}; webhook triggers are never retried)`);announced=true;
     if(!['cloud','docker'].includes(opts.runtime))throw new HarnessError('CONFIG','Unknown runtime');
     if(opts.runtime==='docker'){
       const stateDirectory=resolve(process.env.WFCHECK_STATE_DIR??'.wfcheck');unlock=await acquireLock(stateDirectory);

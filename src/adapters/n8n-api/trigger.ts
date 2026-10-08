@@ -7,5 +7,5 @@ export async function submitTrigger(baseUrl:string,h:RuntimeHandle,input:Compile
  else{if(input.kind!=='json')throw new HarnessError('CONFIG','Webhook requires JSON');headers['content-type']='application/json';body=JSON.stringify(input.data);}
  let response:Response;try{response=await send(baseUrl+(form?'/form/':'/webhook/')+h.prepared.webhookPath,{method:'POST',headers,body,redirect:'error',signal:AbortSignal.any([signal,AbortSignal.timeout(form?30000:15000)])});}
  catch{if(form)return {transport:'uncertain'};throw new HarnessError('TRIGGER','Webhook transport failed; submission is never retried');}
- await response.body?.cancel();if(form?[401,403,404].includes(response.status):!response.ok)throw new HarnessError('TRIGGER',`Intake returned HTTP ${response.status}; this is an infrastructure rejection`);return {transport:'received',responseStatus:response.status};
+ await response.body?.cancel();const synchronousError=!form&&response.status>=500&&h.prepared.workflow.nodes.find(n=>n.id===h.prepared.webhookNodeId)?.parameters.responseMode==='lastNode';if(form?[401,403,404].includes(response.status):!response.ok&&!synchronousError)throw new HarnessError('TRIGGER',`Intake returned HTTP ${response.status}; this is an infrastructure rejection`);return {transport:'received',responseStatus:response.status};
 }

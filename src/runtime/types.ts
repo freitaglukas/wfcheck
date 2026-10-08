@@ -5,7 +5,7 @@ export interface ExecutionObservation {id:string;workflowId:string;status:string
 export interface Evidence {execution:ExecutionObservation;requests:RequestObservation[];gatewayErrors:string[];trigger?:TriggerAttempt;tables?:TableEvidence[];modelCalls?:import('../llm/types.js').ModelCall[];}
 export interface WorkflowNode {id:string;name:string;type:string;typeVersion:number;position:number[];parameters:Record<string,any>;retryOnFail?:boolean;maxTries?:number;waitBetweenTries?:number;onError?:string;credentials?:unknown;[key:string]:unknown;}
 export interface Workflow {name:string;nodes:WorkflowNode[];connections:Record<string,any>;settings?:Record<string,unknown>;[key:string]:unknown;}
-export interface PreparedWorkflow {workflow:Workflow;sourceHash:string;changes:string[];webhookNodeId:string;webhookNodeName:string;webhookPath:string;modelToken?:string;trigger?:TriggerDescriptor;resources?:{tables:import('../spec/normalized.js').LogicalTable[];bindings:import('../spec/normalized.js').TableBinding[]};}
+export interface PreparedWorkflow {workflow:Workflow;sourceHash:string;changes:string[];webhookNodeId:string;webhookNodeName:string;webhookPath:string;modelToken?:string;trigger?:TriggerDescriptor;resources?:{tables:import('../spec/normalized.js').LogicalTable[];bindings:import('../spec/normalized.js').TableBinding[];subworkflows?:Array<{nodeId:string;expectedWorkflowId:string;prepared:PreparedWorkflow}>};}
 export interface RuntimeHandle {workflowId:string;versionId?:string;prepared:PreparedWorkflow;}
 export interface RuntimeAdapter {
   doctor():Promise<unknown>;

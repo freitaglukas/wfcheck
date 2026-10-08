@@ -91,7 +91,7 @@ export class Gateway {
     observation.mockId=rule.id;observation.responseStatus=response.status;c.cursors.set(rule.id,cursor+1);
     if(response.delayMs)await new Promise<void>(resolve=>{const timer=setTimeout(()=>{this.timers.delete(timer);resolve();},response.delayMs);this.timers.add(timer);});
     if(res.destroyed)return;
-    res.writeHead(response.status,{'content-type':response.kind==='text'?'text/plain':'application/json','cache-control':'no-store'});
+    res.writeHead(response.status,{'content-type':response.kind==='text'?(response.contentType??'text/plain'):'application/json','cache-control':'no-store'});
     res.end(response.kind==='json'?JSON.stringify(response.json):response.text);
   }
   async close():Promise<void> {

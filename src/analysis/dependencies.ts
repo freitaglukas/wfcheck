@@ -14,7 +14,7 @@ export function analyzeDependencies(node:NodeAnalysis,params:Record<string,any>,
  if(node.type==='n8n-nodes-base.httpRequest'){
   const url=params.url;
   if(typeof url!=='string'||url.includes('{{')&& !url.startsWith('{{WFCHECK_GATEWAY}}/')){
-   node.diagnostics.push({code:'DYNAMIC_DESTINATION',severity:'error',nodeId:node.id,pointer:pointer+'/url',summary:'HTTP destination must be a known literal bound to a test endpoint'});
+   node.diagnostics.push({code:'DYNAMIC_DESTINATION',severity:'configuration',nodeId:node.id,pointer:pointer+'/url',summary:'HTTP destination must be a known literal bound to a test endpoint'});
   }else if(url.startsWith('{{WFCHECK_GATEWAY}}/'))fact('http.destination',{kind:'gateway-placeholder',sha256:sha256(url)},pointer+'/url');
   else{
    try{const parsed=new URL(url);fact('http.destination',{kind:'literal',origin:parsed.origin,sha256:sha256(url)},pointer+'/url');if(!['https:','http:'].includes(parsed.protocol)||parsed.username||parsed.password)throw new Error('unsafe');require('http-binding','Bind this HTTP node to a synthetic mock or supported local model protocol');}
@@ -22,12 +22,14 @@ export function analyzeDependencies(node:NodeAnalysis,params:Record<string,any>,
   }
  }
  if(node.type==='n8n-nodes-base.dataTable'){
-  if(params.resource!=='row')node.diagnostics.push({code:'OPERATION_UNSUPPORTED',severity:'error',nodeId:node.id,pointer,summary:'Only row get/upsert can be isolated'});
+  if(params.resource!=='row')node.diagnostics.push({code:'OPERATION_UNSUPPORTED',severity:'error',nodeId:node.id,pointer,summary:'Only row get/upsert/update can be isolated'});
   const resource=object(params.dataTableId)?params.dataTableId.value:params.dataTableId;
-  if(typeof resource!=='string'||resource.includes('{{')||resource.startsWith('='))node.diagnostics.push({code:'DYNAMIC_RESOURCE',severity:'error',nodeId:node.id,pointer,summary:'Table identity must be a literal bound to an isolated test table'});
+  if(typeof resource!=='string'||resource.includes('{{')||resource.startsWith('='))node.diagnostics.push({code:'DYNAMIC_RESOURCE',severity:'configuration',nodeId:node.id,pointer,summary:'Table identity must be a literal bound to an isolated test table'});
   else fact('table.sourceHash',sha256(resource),pointer+'/dataTableId');
   require('table-binding','Supply an explicit table schema, seed rows and isolated logical table binding');
  }
+ if(node.type==='n8n-nodes-base.executeWorkflow')require('subworkflow-binding','Bind the source child workflow ID to a reviewed isolated child export');
+ if(node.type==='n8n-nodes-base.gmail')require('node-mock','Bind this outbound send to a pinned synthetic delivery boundary');
  if(node.code)require('code-review','Review immutable Code and explicitly declare its effects before execution');
  if(node.type==='n8n-nodes-base.formTrigger')require('file-fixture','Supply one file fixture with field name, MIME type and byte hash');
  if(node.credentialTypes.length)require('credential-isolation','Replace source credential references with disposable test authentication');

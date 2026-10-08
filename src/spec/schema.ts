@@ -6,7 +6,7 @@ const value = z.json();
 const method = z.enum(['GET','POST','PUT','PATCH','DELETE','HEAD']);
 export const responseSchema = z.discriminatedUnion('kind', [
   z.strictObject({kind:z.literal('json'),status:z.int().min(200).max(599),json:value.refine(v=>Buffer.byteLength(JSON.stringify(v))<=65536,'Response JSON exceeds 64 KiB'),delayMs:z.int().min(0).max(5000).default(0)}),
-  z.strictObject({kind:z.literal('text'),status:z.int().min(200).max(599),text:z.string().max(65536).refine(v=>Buffer.byteLength(v)<=65536,'Text exceeds 64 KiB'),delayMs:z.int().min(0).max(5000).default(0)}),
+  z.strictObject({kind:z.literal('text'),contentType:z.enum(['text/plain','application/rss+xml','application/xml','text/xml']).optional(),status:z.int().min(200).max(599),text:z.string().max(65536).refine(v=>Buffer.byteLength(v)<=65536,'Text exceeds 64 KiB'),delayMs:z.int().min(0).max(5000).default(0)}),
   z.strictObject({kind:z.literal('malformed-json'),status:z.int().min(200).max(599),text:z.string().max(65536).refine(v=>Buffer.byteLength(v)<=65536,'Text exceeds 64 KiB').refine(s=>{try{JSON.parse(s);return false;}catch{return true;}},'Must be invalid JSON'),delayMs:z.int().min(0).max(5000).default(0)})
 ]);
 export const mockSchema = z.strictObject({

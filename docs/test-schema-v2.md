@@ -6,7 +6,7 @@ Generated suites carry draft: true. They are ordinary editable project files, bu
 
 JSON Schema assertions support bounded type/required/properties/additionalProperties/enum/items/string-number-array limits, depth at most 8 and 64 KiB. References, custom formats and unknown keywords are rejected. All runnable tests require execution.status.
 
-Native table tests now create declared schemas and seed rows through the public API, bind native row get/upsert nodes to owned IDs, and collect actual complete rows before cleanup. Writes must use explicit `defineBelow` mappings; filter/mapping columns must belong to the trusted schema. Id/date system columns cannot be declared. An owned missing-table fault creates and deletes an extra exact table before the native write; the ordinary table stays separate. No application table is read for seeding.
+Native table tests create declared schemas and seed rows through the public API, bind native row get/upsert/update nodes to owned IDs, and collect complete rows before cleanup. Writes must use explicit `defineBelow` mappings; filter/mapping columns must belong to the trusted schema. Id/date system columns cannot be declared. An owned missing-table fault creates and deletes an extra exact table before the native write; the ordinary table stays separate. No application table is read for seeding.
 
 `table.count` and `table.row` require complete named evidence. A row key must select exactly one record. Missing observations and incomplete pagination are evidence errors, never a zero count. `node.schema` and `request.schema` evaluate the bounded JSON Schema subset without executable validators or ignored keywords. See `examples/suites/native-table.yaml` for a keyed upsert that preserves a manual column.
 
@@ -17,6 +17,20 @@ A test declares `input: {kind: json, fixture: fixtures/input.json}` or `input: {
 A literal HTTP dependency needs a binding with `nodeId`, `expectedUrl`, `mockPath`, and optional `protocol: openai-chat`. Source mismatch fails before mutation. HTTP production credentials are stripped only for qualified known credential types; unknown credential types are rejected. Native table bindings similarly pin `expectedResourceId` and reference a trusted logical table ID.
 
 Reviewed Code declares `trust.sourceHash` and `reviewedCode: [{nodeId, codeHash, noExternalEffects: true}]`. Hashes are SHA-256 of exact UTF-8 source bytes. Review is a human/operator trust decision, not static proof that arbitrary code is safe. Code is not changed by the runtime; test-copy changes are transport, authentication, resources, paths and evidence settings.
+
+Nontrivial expressions require `trust.reviewedExpressions: true` with an exact source hash. Dynamic HTTP/table expressions still require their exact source string in `expectedUrl`/`expectedResourceId`; the expression never selects a destination or table. The trusted binding supplies the isolated resource. Code is bounded at 256 KiB per node, within the existing 1 MiB workflow limit. Only the selected Webhook/Form intake remains enabled; scheduled intakes are disabled in the copy.
+
+An explicit Gmail-send substitution uses `nodeMocks: [{nodeId, expectedParametersHash, mockPath}]`. Its pin is SHA-256 of `JSON.stringify(sourceNode.parameters)`. Only the qualified message/send shape is supported. The replacement sends the original recipient, subject and message expressions to the authenticated mock gateway. This verifies workflow delivery decisions and content, not native Gmail OAuth or delivery.
+
+## Native children and durable replays
+
+`subworkflows: [{nodeId, expectedWorkflowId, workflow, triggerId, trust, tableBindings}]` qualifies one level of native Execute Workflow calls in managed Docker only. The source child ID and child source/Code hashes must match. The child must have exactly one enabled native Execute Workflow Trigger; its external Webhook/Form/schedule intakes are disabled. It is published before the parent and shares only the parent's declared owned tables. Recursive children, child HTTP/model/email transports and Cloud child execution remain unsupported. Child `triggerId` identifies an intake used during validation; it is disabled before publication in favor of the native subworkflow entry.
+
+`steps: [{id, input: {kind: json, fixture}, assertions}]` submits up to eight additional fixtures to the same workflow and durable tables, with a new saved correlation marker per step. Root and steps all require `execution.status` and validated mock/table references. Steps currently require JSON intake and deterministic mock mode. Each step's request counts cover only requests observed since the preceding phase. Table snapshots show state after that phase. Late requests are audited at the suite cutoff and attributed to the last observed phase. Terminal execution/request evidence is retained even if table collection or assertions fail.
+
+The hard ceiling of 20 executions includes parent replays and native child calls. Before startup, the planner conservatively counts every main-graph path from the selected trigger to each bound child node, including mutually exclusive branches. Reported `plannedExecutions` can therefore exceed observed executions; `--max-executions` can lower the ceiling. Triggers are never retried.
+
+Text mock responses may declare `contentType: application/rss+xml | application/xml | text/xml | text/plain`; the default remains text/plain. This exercises feed validation against actual HTTP response headers without contacting a public source.
 
 ## Models
 

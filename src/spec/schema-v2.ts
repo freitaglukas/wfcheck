@@ -16,25 +16,32 @@ export const assertionV2Schema=z.union([assertionSchema,
  z.strictObject({target:z.literal('table.row'),tableId:id,key:z.strictObject({field:column,value:z.json()}),pointer,equals:z.json()})
 ]);
 export const llmDefaultsSchema=z.strictObject({mode:z.enum(['mock','local','replay']).optional(),provider:z.enum(['ollama','openai-compatible']).optional(),endpoint:z.string().url().optional(),model:z.string().min(1).max(256).optional(),preferences:z.array(z.string().max(256)).max(20).optional(),temperature:z.number().min(0).max(2).optional(),seed:z.int().min(0).max(2147483647).optional(),maxOutputTokens:z.int().min(1).max(2048).optional(),contextTokens:z.int().min(1).max(8192).optional(),timeoutMs:z.int().min(100).max(60000).optional(),maxCalls:z.int().min(1).max(20).optional(),record:path.optional(),replay:path.optional(),replayHash:hash.optional(),identities:path.optional()});
-const logicalTable=z.strictObject({id,columns:z.array(z.strictObject({name:column,type:z.enum(['string','number','boolean'])})).min(1).max(20),seedRows:z.array(z.record(column,z.json())).max(100).default([])}).superRefine((t,ctx)=>{
+const logicalTable=z.strictObject({id,columns:z.array(z.strictObject({name:column,type:z.enum(['string','number','boolean'])})).min(1).max(64),seedRows:z.array(z.record(column,z.json())).max(100).default([])}).superRefine((t,ctx)=>{
  const names=t.columns.map(c=>c.name);if(new Set(names).size!==names.length)ctx.addIssue({code:'custom',message:'Duplicate table columns'});
  if(t.seedRows.some(r=>Object.keys(r).some(k=>!names.includes(k))))ctx.addIssue({code:'custom',message:'Seed row has unknown column'});
 });
+const trustSchema=z.strictObject({sourceHash:hash,reviewedExpressions:z.literal(true).optional(),reviewedCode:z.array(z.strictObject({nodeId:id,codeHash:hash,noExternalEffects:z.literal(true)})).max(200).default([])});
+const tableBindingSchema=z.strictObject({nodeId:id,expectedResourceId:z.string().min(1).max(128),tableId:id,fault:z.literal('missing-table').optional()});
 export const testV2Schema=z.strictObject({
- id,workflow:path,input:z.discriminatedUnion('kind',[
+ id,workflow:path,steps:z.array(z.strictObject({id,input:z.strictObject({kind:z.literal('json'),fixture:path}),assertions:z.array(assertionV2Schema).min(1).max(100)})).max(8).default([]),input:z.discriminatedUnion('kind',[
  z.strictObject({kind:z.literal('json'),fixture:path}),
  z.strictObject({kind:z.literal('file'),fixture:path,field:z.string().min(1).max(128),mimeType:z.enum(['image/png','image/jpeg','image/webp','application/pdf'])})
  ]),triggerId:id.optional(),timeoutMs:z.int().min(1000).max(120000).default(30000),
- trust:z.strictObject({sourceHash:hash,reviewedCode:z.array(z.strictObject({nodeId:id,codeHash:hash,noExternalEffects:z.literal(true)})).max(200).default([])}).optional(),
+ trust:trustSchema.optional(),
+ nodeMocks:z.array(z.strictObject({nodeId:id,expectedParametersHash:hash,mockPath:z.string().max(256).regex(/^\/[A-Za-z0-9/_-]*$/)})).max(20).default([]),
+ subworkflows:z.array(z.strictObject({nodeId:id,expectedWorkflowId:z.string().min(1).max(128),workflow:path,triggerId:id,trust:trustSchema,tableBindings:z.array(tableBindingSchema).max(200)})).max(5).default([]),
  bindings:z.array(z.strictObject({nodeId:id,expectedUrl:z.string().min(1).max(2048),mockPath:z.string().max(256).regex(/^\/[A-Za-z0-9/_-]*$/),protocol:z.enum(['http-json','openai-chat']).default('http-json')})).max(20).default([]),
  tables:z.array(logicalTable).max(20).default([]),
- tableBindings:z.array(z.strictObject({nodeId:id,expectedResourceId:z.string().min(1).max(128),tableId:id,fault:z.literal('missing-table').optional()})).max(200).default([]),
+ tableBindings:z.array(tableBindingSchema).max(200).default([]),
  mocks:z.array(mockSchema).max(20),assertions:z.array(assertionV2Schema).min(1).max(100),
  verificationKind:z.enum(['smoke','baseline','behavior']),llm:llmDefaultsSchema.optional()
 }).superRefine((t,ctx)=>{
+ if(t.steps.length&&t.input.kind!=='json')ctx.addIssue({code:'custom',message:'Stateful steps currently require JSON intake'});
  if(!t.assertions.some(a=>a.target==='execution.status'))ctx.addIssue({code:'custom',message:'An explicit execution.status assertion is required'});
- for(const list of [t.mocks.map(m=>m.id),t.bindings.map(b=>b.nodeId),t.tableBindings.map(b=>b.nodeId),t.tables.map(v=>v.id),t.trust?.reviewedCode.map(c=>c.nodeId)??[]])if(new Set(list).size!==list.length)ctx.addIssue({code:'custom',message:'Duplicate configuration identity'});
- for(const a of t.assertions){if('mockId'in a&&!t.mocks.some(m=>m.id===a.mockId))ctx.addIssue({code:'custom',message:'Unknown assertion mock'});if('tableId'in a&&!t.tables.some(v=>v.id===a.tableId))ctx.addIssue({code:'custom',message:'Unknown assertion table'});}
+ for(const step of t.steps)if(!step.assertions.some(a=>a.target==='execution.status'))ctx.addIssue({code:'custom',message:'Each stateful step requires execution.status'});
+ for(const list of [t.steps.map(s=>s.id),t.mocks.map(m=>m.id),t.bindings.map(b=>b.nodeId),t.nodeMocks.map(b=>b.nodeId),t.subworkflows.map(b=>b.nodeId),t.tableBindings.map(b=>b.nodeId),t.tables.map(v=>v.id),t.trust?.reviewedCode.map(c=>c.nodeId)??[]])if(new Set(list).size!==list.length)ctx.addIssue({code:'custom',message:'Duplicate configuration identity'});
+ for(const a of [...t.assertions,...t.steps.flatMap(step=>step.assertions)]){if('mockId'in a&&!t.mocks.some(m=>m.id===a.mockId))ctx.addIssue({code:'custom',message:'Unknown assertion mock'});if('tableId'in a&&!t.tables.some(v=>v.id===a.tableId))ctx.addIssue({code:'custom',message:'Unknown assertion table'});}
+ if(t.subworkflows.some(s=>s.tableBindings.some(b=>!t.tables.some(v=>v.id===b.tableId))))ctx.addIssue({code:'custom',message:'Unknown child table binding'});
  if(t.tableBindings.some(b=>!t.tables.some(v=>v.id===b.tableId)))ctx.addIssue({code:'custom',message:'Unknown table binding'});
  if(new Set(t.mocks.map(m=>m.method+' '+m.path)).size!==t.mocks.length)ctx.addIssue({code:'custom',message:'Duplicate mock method/path'});
 });

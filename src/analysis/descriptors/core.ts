@@ -5,5 +5,7 @@ export const core:CapabilityDescriptor[]=[
  pure('n8n-nodes-base.set',[3.4]),pure('n8n-nodes-base.if',[2.2]),pure('n8n-nodes-base.filter',[2.2]),pure('n8n-nodes-base.noOp',[1]),
  {...pure('n8n-nodes-base.formTrigger',[2.2]),driver:'form-file'},
  pure('n8n-nodes-base.extractFromFile',[1]),
+ pure('n8n-nodes-base.scheduleTrigger',[1.2]),
+ pure('n8n-nodes-base.executeWorkflowTrigger',[1.1]),
  {...pure('n8n-nodes-base.code',[2]),effect:'opaque'}
 ];

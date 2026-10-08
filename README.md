@@ -77,7 +77,7 @@ The gateway exposes only authenticated bounded test traffic/probes, not control 
 - **1**: observed regression, even when n8n reports success.
 - **2**: preflight, unsupported behavior, missing evidence, infrastructure, interruption or cleanup failure.
 
-Execution is serial, at most 20 cases per invocation; `--max-executions` lowers the limit. Triggers are submitted once. Expected n8n errors require actual terminal/error evidence. Reports include source/fixture hashes, transport changes, saved intermediate outputs, requests, native table rows and model provenance. Binary/base64 payloads and credentials are redacted.
+Execution is serial, at most 20 planned executions per invocation including replay steps and a conservative bound on native child calls; `--max-executions` lowers the limit. Triggers are submitted once. Expected n8n errors require actual terminal/error evidence. Reports include source/fixture hashes, transport changes, saved intermediate outputs, per-phase requests, native table rows and model provenance. Binary/base64 payloads and credentials are redacted.
 
 Private ownership journals are written before resource creation. Recovery verifies exact IDs, names, parent workflows and Docker daemon/labels. A lost create response remains an explicit uncertain intent; never recreate or delete by prefix. Confirm its exact ID manually before cleanup. SIGINT/SIGTERM attempt cleanup; SIGKILL, outages and power loss require journal recovery. `--keep-runtime-on-failure` explicitly retains Docker resources and prints recovery information. See [security boundaries](SECURITY.md) and [fresh acceptance evidence](docs/acceptance/generic-workflow-testing.md).
 
