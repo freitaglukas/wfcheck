@@ -28,7 +28,7 @@ export function plannedExecutions(tests:NormalizedTest[],sources?:string[]):numb
   return total+(1+test.steps.length)*(1+calls);
  },0);
 }
-export function prepareCompiledTest(test:CompiledTestV2,url:string,runId:string,token:string):PreparedWorkflow{
+export function prepareCompiledTest(test:Pick<CompiledTestV2,'source'|'spec'|'sourceSchemaVersion'|'subworkflowSources'>,url:string,runId:string,token:string):PreparedWorkflow{
  const prepared=test.sourceSchemaVersion===1?prepareWorkflow(test.source,url,runId,test.spec.id,token,test.spec.timeoutMs):prepareV2Workflow(test.source,test.spec,url,runId,test.spec.id,token);
  if(test.spec.subworkflows.length){
   if(test.subworkflowSources?.length!==test.spec.subworkflows.length)throw new HarnessError('CONFIG','Child workflow sources are missing');

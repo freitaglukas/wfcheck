@@ -12,15 +12,17 @@ export function assistantProjection(draft:DraftPlan,input:AssistantInput){
  const nodes=draft.analysis.nodes.slice(0,25);
  const nodeTypes=[...new Set(nodes.map(n=>n.type))];
  const codeHashes=[...new Set(nodes.flatMap(n=>n.code?[n.code.sha256]:[]))];
+ const nodeIndices=new Map(nodes.map((node,index)=>[node.id,index]));
+ const edges=draft.analysis.edges.filter(edge=>nodeIndices.has(edge.from)&&nodeIndices.has(edge.to));
+ const edgeTypes=[...new Set(edges.map(edge=>edge.connectionType))];
  // Shared dictionaries keep full immutable identities without repeating long types/hashes.
  const projection={
   sourceHash:draft.sourceHash,nodeCount:draft.analysis.nodes.length,omittedNodes:draft.analysis.nodes.length-nodes.length,
   nodeColumns:['id','typeIndex','version','effect','codeHashIndex'],nodeTypes,codeHashes,
   nodes:nodes.map(n=>[n.id,nodeTypes.indexOf(n.type),n.typeVersion,n.capabilities?.effect??null,n.code?codeHashes.indexOf(n.code.sha256):null]),
-  requirements:[...new Set(draft.unresolved.map(r=>r.kind))].map(kind=>{
-   const ids=[...new Set(draft.unresolved.filter(r=>r.kind===kind&&r.nodeId).map(r=>r.nodeId))];
-   return {kind,nodeIds:ids.slice(0,25),omittedNodeIds:Math.max(0,ids.length-25)};
-  }),
+  edgeColumns:['fromNodeIndex','toNodeIndex','typeIndex','outputIndex','inputIndex'],edgeTypes,
+  edges:edges.map(edge=>[nodeIndices.get(edge.from),nodeIndices.get(edge.to),edgeTypes.indexOf(edge.connectionType),edge.outputIndex,edge.inputIndex]),omittedEdges:draft.analysis.edges.length-edges.length,
+  requirements:[...new Set(draft.unresolved.map(r=>r.kind))].map(kind=>{const ids=[...new Set(draft.unresolved.filter(r=>r.kind===kind&&r.nodeId).map(r=>r.nodeId!))];return {kind,nodeIndices:ids.filter(id=>nodeIndices.has(id)).map(id=>nodeIndices.get(id)),omittedNodeIds:ids.filter(id=>!nodeIndices.has(id)).length};}),
   triggers:draft.analysis.triggers,requirementsText:input.requirements?redactor.text(input.requirements).slice(0,1500):undefined,code
  };
  if(Buffer.byteLength(JSON.stringify(projection))>5000)throw new HarnessError('CONFIG','Reviewed assistant projection exceeds its context budget');

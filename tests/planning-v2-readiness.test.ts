@@ -70,3 +70,28 @@ it('does not approve another workflow path using source bytes supplied for the o
  changed.tests[0]!.workflow='unrelated-workflow.json';
  expect(validatePlan(draft,{...config,candidateSuite:changed}).ready).toBe(false);
 });
+it('validates step fixtures, assertion nodes and the full replay execution ceiling',async()=>{
+ const source=await readFile('examples/workflows/correct.json','utf8');
+ const suite=parse(await readFile('examples/suites/correct.yaml','utf8'));
+ const {draft,config}=readiness(source,suite),candidate=structuredClone(config.candidateSuite);
+ candidate.tests[0]!.steps=[{id:'repeat',input:{kind:'json',fixture:'missing-step.json'},assertions:[{target:'execution.status',equals:'success'},{target:'node.executed',nodeId:'missing-node',equals:false}]}];
+ const missing=validatePlan(draft,{...config,candidateSuite:candidate});
+ expect(missing.ready).toBe(false);expect(missing.diagnostics.map(d=>d.code)).toContain('INPUT_REQUIRED');expect(missing.diagnostics.map(d=>d.code)).toContain('UNKNOWN_ASSERTION_NODE');
+ candidate.tests[0]!.steps=[{id:'repeat',input:candidate.tests[0]!.input as {kind:'json';fixture:string},assertions:[{target:'execution.status',equals:'success'}]}];
+ expect(validatePlan(draft,{...config,candidateSuite:candidate}).ready).toBe(true);
+ candidate.tests=Array.from({length:3},(_,i)=>({...structuredClone(candidate.tests[0]!),id:'case-'+i,steps:Array.from({length:8},(_,j)=>({id:'step-'+j,input:candidate.tests[0]!.input as {kind:'json';fixture:string},assertions:[{target:'execution.status' as const,equals:'success' as const}]}))}));
+ const bound=validatePlan(draft,{...config,candidateSuite:candidate});expect(bound.ready).toBe(false);expect(bound.diagnostics.map(d=>d.code)).toContain('EXECUTION_LIMIT');
+});
+it('requires managed Docker and reviewed child source and checks native entry before readiness',()=>{
+ const node=(id:string,type:string,version:number,parameters:any)=>({id,name:id,type:'n8n-nodes-base.'+type,typeVersion:version,position:[0,0],parameters});
+ const intake=node('input','webhook',2,{httpMethod:'POST',path:'input',responseMode:'onReceived',options:{}});
+ const child=JSON.stringify({name:'Child',nodes:[intake,node('entry','executeWorkflowTrigger',1.1,{inputSource:'passthrough'}),node('result','noOp',1,{})],connections:{input:{main:[[{node:'result',type:'main',index:0}]]},entry:{main:[[{node:'result',type:'main',index:0}]]}}});
+ const source=JSON.stringify({name:'Parent',nodes:[intake,node('call','executeWorkflow',1.3,{source:'database',workflowId:{__rl:true,mode:'id',value:'source'},mode:'once',options:{waitForSubWorkflow:true},workflowInputs:{mappingMode:'passThrough',value:{},matchingColumns:[],schema:[],attemptToConvertTypes:false,convertFieldsToString:false}})],connections:{input:{main:[[{node:'call',type:'main',index:0}]]}}});
+ const suite={schemaVersion:2,name:'Child plan',tests:[{id:'one',workflow:'parent.json',input:{kind:'json',fixture:'input.json'},subworkflows:[{nodeId:'call',expectedWorkflowId:'source',workflow:'child.json',triggerId:'input',trust:{sourceHash:sha256(child)},tableBindings:[]}],mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]};
+ const {draft,config}=readiness(source,suite);expect(config.workflowSources['child.json']).toBeUndefined();expect(validatePlan(draft,config).ready).toBe(false);
+ const full={...config,workflowSources:{...config.workflowSources,'child.json':child},runtimeCapabilities:{kind:'docker',triggerKinds:[],operations:[]}};
+ expect(validatePlan(draft,full).ready).toBe(true);
+ expect(validatePlan(draft,{...full,runtimeCapabilities:{...full.runtimeCapabilities,kind:'cloud'}}).ready).toBe(false);
+ const disabled=JSON.parse(child);disabled.nodes[1].disabled=true;const changed=JSON.stringify(disabled);const candidate=structuredClone(full.candidateSuite);candidate.tests[0]!.subworkflows[0]!.trust.sourceHash=sha256(changed);
+ expect(validatePlan(draft,{...full,candidateSuite:candidate,workflowSources:{...full.workflowSources,'child.json':changed}}).ready).toBe(false);
+});

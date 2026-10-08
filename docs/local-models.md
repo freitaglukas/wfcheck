@@ -2,6 +2,14 @@
 
 Mock is the default. `--llm local --model NAME|auto --llm-endpoint http://127.0.0.1:11434` selects installed physical Ollama content. Discovery reads version, tags, digest and capabilities; remote-host/cloud aliases are excluded, even when their name looks ordinary. Selection freezes before a case. No model pulls, host-service rebinding or hosted fallback occur.
 
+Planning uses schema-constrained output with at most four concise proposals. If
+Ollama's actual show metadata advertises `thinking.values` containing false, the
+planner sends `think: false` so reasoning does not consume its bounded completion
+budget. Other models receive no unsupported thinking option. The 5,000-byte
+redacted projection includes compact node/edge dictionaries, full immutable hashes
+and explicit omissions. Fresh qwen3.5:9b receipt/Scout plans produced valid inferred
+suggestions; their large bundled Code was not included for semantic review.
+
 CLI overrides case settings, which override suite defaults. Limits: one concurrent call, default 10 calls per case (hard 20), 60-second timeout, 8192 context tokens and 2048 output tokens, temperature 0 and seed 0. Native Ollama receives `num_ctx`/`num_predict` per request. The context check conservatively budgets text bytes; it does not claim deterministic vision tokenization. Failed, canceled, oversized, tool-based or truncated responses produce errors and no fabricated completion.
 
 Only validated non-streaming chat/text or inline PNG/JPEG/WebP image content is accepted. Images cannot name external URLs. Forwarding drops source account/auth headers. The model endpoint comes exclusively from trusted configuration. Request/response envelopes stay within 64 KiB. Generation controls are reported as typed numeric metadata; arbitrary token fields retain normal secret redaction.

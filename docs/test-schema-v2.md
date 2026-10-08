@@ -30,6 +30,12 @@ An explicit Gmail-send substitution uses `nodeMocks: [{nodeId, expectedParameter
 
 The hard ceiling of 20 executions includes parent replays and native child calls. Before startup, the planner conservatively counts every main-graph path from the selected trigger to each bound child node, including mutually exclusive branches. Reported `plannedExecutions` can therefore exceed observed executions; `--max-executions` can lower the ceiling. Triggers are never retried.
 
+Planning readiness uses the same preparation checks as execution. Private
+`workflowSources` must include every root and child path, and `validatedInputs`
+must include each root/step fixture. Child plans also require managed Docker
+capabilities. Invalid child entries/transports, step assertion nodes or an
+execution bound above 20 cannot be marked ready.
+
 Text mock responses may declare `contentType: application/rss+xml | application/xml | text/xml | text/plain`; the default remains text/plain. This exercises feed validation against actual HTTP response headers without contacting a public source.
 
 ## Models

@@ -3,11 +3,15 @@ it('default projection has hashes and facts but no Code, account metadata or sec
 it('explicit reviewed Code is hash checked and redactable rather than trusted authority',()=>{const code='return [{json:{value:1}}];',raw=JSON.stringify({name:'code',nodes:[{id:'code',name:'Code',type:'n8n-nodes-base.code',typeVersion:2,position:[0,0],parameters:{mode:'runOnceForAllItems',jsCode:code}}],connections:{}}),draft=buildDraft(analyzeWorkflow(raw));const hash=draft.analysis.nodes[0]!.code!.sha256;const p=assistantProjection(draft,{includeCode:true,code:[{nodeId:'code',hash,source:code,redactionReviewed:true}]});expect(p.code[0]?.hash).toBe(hash);expect(()=>assistantProjection(draft,{includeCode:true,code:[{nodeId:'code',hash,source:code+' ',redactionReviewed:true}]})).toThrow(/hash/);});
 it('groups repeated requirements so a 25-node workflow fits the same bounded projection',()=>{
  const nodes=Array.from({length:25},(_,i)=>({id:'00000000-0000-4000-8000-'+String(i).padStart(12,'0'),name:'Node '+i,type:'n8n-nodes-base.code',typeVersion:2,position:[0,0],parameters:{mode:'runOnceForAllItems',jsCode:'return $input.all();'}}));
- const draft=buildDraft(analyzeWorkflow(JSON.stringify({name:'large briefing',nodes,connections:{}})));
+ const connections=Object.fromEntries(nodes.slice(0,-1).map((n,i)=>[n.name,{main:[[{node:nodes[i+1]!.name,type:'main',index:0}]]}]));
+ const draft=buildDraft(analyzeWorkflow(JSON.stringify({name:'large briefing',nodes,connections})));
  draft.unresolved=nodes.flatMap(n=>['expression-review','code-review'].map(kind=>({id:n.id+'-'+kind,nodeId:n.id,kind,summary:'Authored review required',provenance:{source:'deterministic' as const}})));
  const projection=assistantProjection(draft,{requirements:'Verify durable delivery claims and duplicate suppression.'});
  expect(Buffer.byteLength(JSON.stringify(projection))).toBeLessThanOrEqual(5000);
- expect(JSON.stringify(projection.requirements)).toContain(nodes[24]!.id);
+ expect(projection.nodes[24]![0]).toBe(nodes[24]!.id);
+ expect(projection.requirements[0].nodeIndices).toContain(24);
+ expect(projection.edges).toHaveLength(24);
+ expect(projection.edges[23]).toEqual([23,24,0,0,0]);
 });
 it('bounds unique requirement node IDs per kind and reports omitted IDs after deduplication',()=>{
  const nodes=Array.from({length:100},(_,i)=>({id:'n'+i,name:'Node '+i,type:'n8n-nodes-base.noOp',typeVersion:1,position:[0,0],parameters:{}}));
@@ -16,8 +20,8 @@ it('bounds unique requirement node IDs per kind and reports omitted IDs after de
  draft.unresolved.push({id:'review',nodeId:'n99',kind:'code-review',summary:'Review required',provenance:{source:'user'}});
  const projection=assistantProjection(draft,{});
  expect(projection.requirements).toEqual([
-  {kind:'http-binding',nodeIds:nodes.slice(0,25).map(n=>n.id),omittedNodeIds:75},
-  {kind:'code-review',nodeIds:['n99'],omittedNodeIds:0}
+  {kind:'http-binding',nodeIndices:Array.from({length:25},(_,i)=>i),omittedNodeIds:75},
+  {kind:'code-review',nodeIndices:[],omittedNodeIds:1}
  ]);
  expect(Buffer.byteLength(JSON.stringify(projection))).toBeLessThanOrEqual(5000);
 });

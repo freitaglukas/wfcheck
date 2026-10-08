@@ -32,6 +32,13 @@ it('never accepts a schedule as a synthetic trigger and requires exact source pi
  test.triggerId='input';test.trust!.sourceHash='a'.repeat(64);
  expect(()=>prepareV2Workflow(source,test,'http://gateway.test','run','test','token')).toThrow(/hash changed/);
 });
+it('validates disabled flags as booleans and enforces Code size in UTF-8 bytes',()=>{
+ const malformed=JSON.parse(make());malformed.nodes[2].disabled='false';const source=JSON.stringify(malformed);
+ expect(()=>prepareV2Workflow(source,spec(source),'http://gateway.test','run','test','token')).toThrow();
+ const oversized=JSON.parse(make());oversized.nodes[2].parameters.jsCode='return $input.all(); //'+ '€'.repeat(100000);const unicode=JSON.stringify(oversized);
+ expect(Buffer.byteLength(oversized.nodes[2].parameters.jsCode)).toBeGreaterThan(262144);
+ expect(()=>prepareV2Workflow(unicode,spec(unicode),'http://gateway.test','run','test','token')).toThrow(/256 KiB/);
+});
 it('substitutes only an explicitly pinned Gmail send boundary and retains its message fields',()=>{
  const parameters={resource:'message',operation:'send',sendTo:'owner@example.test',subject:'Synthetic digest',emailType:'text',message:'One verified project',options:{appendAttribution:false}};
  const source=JSON.stringify({name:'Mail boundary',nodes:[n('input','webhook',2,{httpMethod:'POST',path:'test',responseMode:'onReceived',options:{}}),n('send','gmail',2.1,parameters,{credentials:{gmailOAuth2:{id:'private-source'}}})],connections:{input:{main:[[{node:'send',type:'main',index:0}]]}}});
