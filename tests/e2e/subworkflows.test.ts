@@ -38,6 +38,6 @@ it('executes an owned native-only child and returns its data to the parent',asyn
   console.log('Native child Docker proof:',JSON.stringify({runtime:session.capabilities.version,execution:result.tests[0]?.evidence?.execution.id,request:{value:7},output:result.tests[0]?.evidence?.execution.nodes.call?.[0]?.outputs[0]?.[0],exitCode:result.exitCode,cleanup:result.tests[0]?.cleanup.status}));
  }finally{
   await session?.close();
-  if(!session?.journal.leftovers().length)await rm(root,{recursive:true,force:true});
+  if(session && !session.journal.leftovers().length)await rm(root,{recursive:true,force:true});
  }
 });
