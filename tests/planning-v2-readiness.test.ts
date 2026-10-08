@@ -85,13 +85,13 @@ it('validates step fixtures, assertion nodes and the full replay execution ceili
 it('requires managed Docker and reviewed child source and checks native entry before readiness',()=>{
  const node=(id:string,type:string,version:number,parameters:any)=>({id,name:id,type:'n8n-nodes-base.'+type,typeVersion:version,position:[0,0],parameters});
  const intake=node('input','webhook',2,{httpMethod:'POST',path:'input',responseMode:'onReceived',options:{}});
- const child=JSON.stringify({name:'Child',nodes:[intake,node('entry','executeWorkflowTrigger',1.1,{inputSource:'passthrough'}),node('result','noOp',1,{})],connections:{input:{main:[[{node:'result',type:'main',index:0}]]},entry:{main:[[{node:'result',type:'main',index:0}]]}}});
+ const child=JSON.stringify({name:'Child',nodes:[node('entry','executeWorkflowTrigger',1.1,{inputSource:'passthrough'}),node('result','noOp',1,{})],connections:{entry:{main:[[{node:'result',type:'main',index:0}]]}}});
  const source=JSON.stringify({name:'Parent',nodes:[intake,node('call','executeWorkflow',1.3,{source:'database',workflowId:{__rl:true,mode:'id',value:'source'},mode:'once',options:{waitForSubWorkflow:true},workflowInputs:{mappingMode:'passThrough',value:{},matchingColumns:[],schema:[],attemptToConvertTypes:false,convertFieldsToString:false}})],connections:{input:{main:[[{node:'call',type:'main',index:0}]]}}});
- const suite={schemaVersion:2,name:'Child plan',tests:[{id:'one',workflow:'parent.json',input:{kind:'json',fixture:'input.json'},subworkflows:[{nodeId:'call',expectedWorkflowId:'source',workflow:'child.json',triggerId:'input',trust:{sourceHash:sha256(child)},tableBindings:[]}],mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]};
+ const suite={schemaVersion:2,name:'Child plan',tests:[{id:'one',workflow:'parent.json',input:{kind:'json',fixture:'input.json'},subworkflows:[{nodeId:'call',expectedWorkflowId:'source',workflow:'child.json',triggerId:'entry',trust:{sourceHash:sha256(child)},tableBindings:[]}],mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]};
  const {draft,config}=readiness(source,suite);expect(config.workflowSources['child.json']).toBeUndefined();expect(validatePlan(draft,config).ready).toBe(false);
  const full={...config,workflowSources:{...config.workflowSources,'child.json':child},runtimeCapabilities:{kind:'docker',triggerKinds:[],operations:[]}};
  expect(validatePlan(draft,full).ready).toBe(true);
  expect(validatePlan(draft,{...full,runtimeCapabilities:{...full.runtimeCapabilities,kind:'cloud'}}).ready).toBe(false);
- const disabled=JSON.parse(child);disabled.nodes[1].disabled=true;const changed=JSON.stringify(disabled);const candidate=structuredClone(full.candidateSuite);candidate.tests[0]!.subworkflows[0]!.trust.sourceHash=sha256(changed);
+ const disabled=JSON.parse(child);disabled.nodes[0].disabled=true;const changed=JSON.stringify(disabled);const candidate=structuredClone(full.candidateSuite);candidate.tests[0]!.subworkflows[0]!.trust.sourceHash=sha256(changed);
  expect(validatePlan(draft,{...full,candidateSuite:candidate,workflowSources:{...full.workflowSources,'child.json':changed}}).ready).toBe(false);
 });

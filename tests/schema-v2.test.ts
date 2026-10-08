@@ -1,4 +1,7 @@
 import {it,expect} from 'vitest';
+import {readFileSync} from 'node:fs';
+import {z} from 'zod';
+import {parse} from 'yaml';
 import {normalizeSuite} from '../src/spec/normalized.js';
 import {loadSuiteDocument} from '../src/spec/load.js';
 import {mkdtemp,writeFile,rm} from 'node:fs/promises';
@@ -24,4 +27,19 @@ it('rejects schema references, unknown keywords and deep recursion',()=>{
  }
  let schema:any={type:'string'};for(let i=0;i<10;i++)schema={type:'array',items:schema};
  expect(()=>normalizeSuite({...v2,tests:[{...test,assertions:[status,{target:'node.schema',nodeId:'n',schema}]}]})).toThrow();
+});
+
+it('published JSON Schema accepts authored suites without defaulted fields',()=>{
+ // JSON Schema defaults are annotations, not permission to omit required keys.
+ const published=JSON.parse(readFileSync('docs/suite-schema-v2.json','utf8'),(key,value)=>key==='default'?undefined:value);
+ const authored=z.fromJSONSchema(published);
+ expect(authored.safeParse(v2).success).toBe(true);
+ const reviewed={...v2,tests:[{...v2.tests[0],trust:{sourceHash:'a'.repeat(64)},assertions:[status,{target:'node.schema',nodeId:'result',schema:{type:'object'}}]}]};
+ expect(normalizeSuite(reviewed).tests[0]?.trust?.reviewedCode).toEqual([]);
+ expect(authored.safeParse(reviewed).success).toBe(true);
+ for(const file of ['chat','generated-smoke','native-table']){
+  const suite=parse(readFileSync('examples/suites/'+file+'.yaml','utf8'));
+  expect(authored.safeParse(suite).success,file).toBe(true);
+ }
+ expect(authored.safeParse({...v2,tests:[{...v2.tests[0],workflow:undefined}]}).success).toBe(false);
 });

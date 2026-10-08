@@ -26,6 +26,7 @@
   ],
   "scripts": {
     "build": "tsc",
+    "schema:generate": "tsx scripts/generate-suite-schema.ts",
     "test": "vitest run",
     "dev": "tsx src/cli/main.ts",
     "prepack": "npm run build",

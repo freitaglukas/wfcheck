@@ -228,8 +228,6 @@
                             "required": [
                               "target",
                               "nodeId",
-                              "runIndex",
-                              "outputIndex",
                               "equals"
                             ],
                             "additionalProperties": false
@@ -274,9 +272,6 @@
                             "required": [
                               "target",
                               "nodeId",
-                              "runIndex",
-                              "outputIndex",
-                              "itemIndex",
                               "pointer",
                               "equals"
                             ],
@@ -356,7 +351,6 @@
                             "required": [
                               "target",
                               "mockId",
-                              "requestIndex",
                               "pointer",
                               "equals"
                             ],
@@ -390,7 +384,6 @@
                             "required": [
                               "target",
                               "mockId",
-                              "requestIndex",
                               "header",
                               "equals"
                             ],
@@ -532,10 +525,6 @@
                         "required": [
                           "target",
                           "nodeId",
-                          "runIndex",
-                          "outputIndex",
-                          "itemIndex",
-                          "pointer",
                           "schema"
                         ],
                         "additionalProperties": false
@@ -662,8 +651,6 @@
                         "required": [
                           "target",
                           "mockId",
-                          "requestIndex",
-                          "pointer",
                           "schema"
                         ],
                         "additionalProperties": false
@@ -858,8 +845,7 @@
               }
             },
             "required": [
-              "sourceHash",
-              "reviewedCode"
+              "sourceHash"
             ],
             "additionalProperties": false
           },
@@ -958,8 +944,7 @@
                     }
                   },
                   "required": [
-                    "sourceHash",
-                    "reviewedCode"
+                    "sourceHash"
                   ],
                   "additionalProperties": false
                 },
@@ -1040,8 +1025,7 @@
               "required": [
                 "nodeId",
                 "expectedUrl",
-                "mockPath",
-                "protocol"
+                "mockPath"
               ],
               "additionalProperties": false
             }
@@ -1102,8 +1086,7 @@
               },
               "required": [
                 "id",
-                "columns",
-                "seedRows"
+                "columns"
               ],
               "additionalProperties": false
             }
@@ -1221,8 +1204,7 @@
                         "required": [
                           "kind",
                           "status",
-                          "json",
-                          "delayMs"
+                          "json"
                         ],
                         "additionalProperties": false
                       },
@@ -1261,8 +1243,7 @@
                         "required": [
                           "kind",
                           "status",
-                          "text",
-                          "delayMs"
+                          "text"
                         ],
                         "additionalProperties": false
                       },
@@ -1292,8 +1273,7 @@
                         "required": [
                           "kind",
                           "status",
-                          "text",
-                          "delayMs"
+                          "text"
                         ],
                         "additionalProperties": false
                       }
@@ -1305,8 +1285,6 @@
                 "id",
                 "method",
                 "path",
-                "headers",
-                "bodyFields",
                 "responses"
               ],
               "additionalProperties": false
@@ -1375,8 +1353,6 @@
                       "required": [
                         "target",
                         "nodeId",
-                        "runIndex",
-                        "outputIndex",
                         "equals"
                       ],
                       "additionalProperties": false
@@ -1421,9 +1397,6 @@
                       "required": [
                         "target",
                         "nodeId",
-                        "runIndex",
-                        "outputIndex",
-                        "itemIndex",
                         "pointer",
                         "equals"
                       ],
@@ -1503,7 +1476,6 @@
                       "required": [
                         "target",
                         "mockId",
-                        "requestIndex",
                         "pointer",
                         "equals"
                       ],
@@ -1537,7 +1509,6 @@
                       "required": [
                         "target",
                         "mockId",
-                        "requestIndex",
                         "header",
                         "equals"
                       ],
@@ -1679,10 +1650,6 @@
                   "required": [
                     "target",
                     "nodeId",
-                    "runIndex",
-                    "outputIndex",
-                    "itemIndex",
-                    "pointer",
                     "schema"
                   ],
                   "additionalProperties": false
@@ -1809,8 +1776,6 @@
                   "required": [
                     "target",
                     "mockId",
-                    "requestIndex",
-                    "pointer",
                     "schema"
                   ],
                   "additionalProperties": false
@@ -1986,14 +1951,7 @@
         "required": [
           "id",
           "workflow",
-          "steps",
           "input",
-          "timeoutMs",
-          "nodeMocks",
-          "subworkflows",
-          "bindings",
-          "tables",
-          "tableBindings",
           "mocks",
           "assertions",
           "verificationKind"
@@ -2005,8 +1963,6 @@
   "required": [
     "schemaVersion",
     "name",
-    "draft",
-    "redactValues",
     "tests"
   ],
   "additionalProperties": false,

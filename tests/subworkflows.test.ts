@@ -6,13 +6,23 @@ const node=(id:string,type:string,version:number,parameters:any)=>({id,name:id,t
 it('imports reviewed child copies first and binds the parent only to the owned child ID',async()=>{
  const root=await mkdtemp(join(tmpdir(),'child-workflow-'));
  const input=node('input','webhook',2,{httpMethod:'POST',path:'original',responseMode:'onReceived',options:{}});
- const child=JSON.stringify({name:'Child',nodes:[input,node('child-input','executeWorkflowTrigger',1.1,{inputSource:'passthrough'}),node('result','noOp',1,{})],connections:{input:{main:[[{node:'result',type:'main',index:0}]]},'child-input':{main:[[{node:'result',type:'main',index:0}]]}}});
+ const child=JSON.stringify({name:'Child',nodes:[node('child-input','executeWorkflowTrigger',1.1,{inputSource:'passthrough'}),node('result','noOp',1,{})],connections:{'child-input':{main:[[{node:'result',type:'main',index:0}]]}}});
  const parent=JSON.stringify({name:'Parent',nodes:[input,node('call','executeWorkflow',1.3,{source:'database',workflowId:{__rl:true,mode:'id',value:'private-source-id'},mode:'once',options:{waitForSubWorkflow:true},workflowInputs:{mappingMode:'passThrough',value:{},matchingColumns:[],schema:[],attemptToConvertTypes:false,convertFieldsToString:false}})],connections:{input:{main:[[{node:'call',type:'main',index:0}]]}}});
  try{
   await writeFile(join(root,'parent.json'),parent);await writeFile(join(root,'child.json'),child);await writeFile(join(root,'input.json'),'{}');
-  const suite=normalizeSuite({schemaVersion:2,name:'child',tests:[{id:'child',workflow:'parent.json',input:{kind:'json',fixture:'input.json'},subworkflows:[{nodeId:'call',expectedWorkflowId:'private-source-id',workflow:'child.json',triggerId:'input',trust:{sourceHash:sha256(child)},tableBindings:[]}],mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]});
+  const suite=normalizeSuite({schemaVersion:2,name:'child',tests:[{id:'child',workflow:'parent.json',input:{kind:'json',fixture:'input.json'},subworkflows:[{nodeId:'call',expectedWorkflowId:'private-source-id',workflow:'child.json',triggerId:'child-input',trust:{sourceHash:sha256(child)},tableBindings:[]}],mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]});
   const compiled=await compileSuiteV2(suite,root,root),prepared=prepareCompiledTest(compiled[0]!,'http://gateway.test','run','token');
-  expect(prepared.resources!.subworkflows![0]!.prepared.workflow.nodes.find(n=>n.id==='input')?.disabled).toBe(true);
+  const native=prepared.resources!.subworkflows![0]!.prepared;
+  expect(native.workflow.nodes.find(n=>n.id==='child-input')?.parameters).toEqual({inputSource:'passthrough'});
+  expect(native.trigger).toBeUndefined();
+  expect(native.webhookPath).toBe('');
+  const withIntakes=JSON.parse(child);withIntakes.nodes.push(input,node('form','formTrigger',2.2,{formTitle:'Upload',formFields:{values:[{fieldLabel:'file',fieldType:'file'}]},responseMode:'onReceived',options:{}}));
+  const mixed=structuredClone(compiled[0]!);mixed.subworkflowSources![0]=JSON.stringify(withIntakes);mixed.spec.subworkflows[0]!.trust.sourceHash=sha256(mixed.subworkflowSources![0]!);
+  const isolated=prepareCompiledTest(mixed,'http://gateway.test','run','token').resources!.subworkflows![0]!.prepared;
+  expect(isolated.workflow.nodes.filter(n=>['input','form'].includes(n.id)).map(n=>n.disabled)).toEqual([true,true]);
+  expect(isolated.workflow.nodes.find(n=>n.id==='child-input')?.parameters).toEqual({inputSource:'passthrough'});
+  const wrongEntry=structuredClone(mixed);wrongEntry.spec.subworkflows[0]!.triggerId='input';
+  expect(()=>prepareCompiledTest(wrongEntry,'http://gateway.test','run','token')).toThrow(/native subworkflow entry/);
   expect(prepared.resources!.subworkflows![0]!.prepared.workflow.nodes.find(n=>n.id==='child-input')?.disabled).not.toBe(true);
   for(const entryMode of ['missing','disabled','multiple']){
    const changed=JSON.parse(child);const entry=changed.nodes.find((n:any)=>n.id==='child-input');

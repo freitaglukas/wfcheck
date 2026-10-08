@@ -36,7 +36,7 @@ export function prepareCompiledTest(test:Pick<CompiledTestV2,'source'|'spec'|'so
    const source=test.subworkflowSources![index]!;const childWorkflow=JSON.parse(source);if(childWorkflow.nodes.some((n:any)=>n.type.startsWith('@n8n/n8n-nodes-langchain.')))throw new HarnessError('CAPABILITY','Child native model transports are not yet qualified');
    if(childWorkflow.nodes.filter((n:any)=>n.type==='n8n-nodes-base.executeWorkflowTrigger'&&n.disabled!==true).length!==1)throw new HarnessError('CAPABILITY','Child needs exactly one enabled native subworkflow entry');
    const spec={...test.spec,id:test.spec.id+'-child-'+index,triggerId:child.triggerId,trust:child.trust,tableBindings:child.tableBindings,bindings:[],nodeMocks:[],subworkflows:[],assertions:[]};
-   const isolated=prepareV2Workflow(source,spec,url,runId,spec.id,token);for(const node of isolated.workflow.nodes)if(['n8n-nodes-base.webhook','n8n-nodes-base.formTrigger'].includes(node.type))node.disabled=true;isolated.changes.push('Child: external intake triggers disabled; native subworkflow entry retained');
+   const isolated=prepareV2Workflow(source,spec,url,runId,spec.id,token,'child');
    return {nodeId:child.nodeId,expectedWorkflowId:child.expectedWorkflowId,prepared:isolated};
   });
  }
