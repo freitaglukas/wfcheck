@@ -10,7 +10,7 @@ A generic OpenAI-compatible `/v1/models` listing does not prove local execution.
 
 Fresh local transport proof: installed physical `qwen2.5:0.5b`, digest `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`, host runtime 0.35.1, generated independently specified synthetic JSON under temperature 0 / seed 0 / context 8192 / output 32 controls. This establishes transport/control behavior, not model accuracy or workflow correctness.
 
-Workflow gateway routing, recording/replay and optional planning assistance are integrated in the next dependency task. Optional managed model containers require a supplied preinstalled artifact/volume and pinned image; this machine already supplies native Ollama, so no model infrastructure or downloads were added.
+Workflow gateway routing, approved recording/replay and optional local planning assistance are integrated. They preserve independently authored expectations and do not grant runtime authority. Managed model containers remain unqualified; the verified local inference path uses an already installed native Ollama service and physical model artifact, without adding model infrastructure or downloads.
 
 Native Chat Model 1.3 + Basic LLM Chain 1.9 are now qualified for non-streaming Chat Completions (responsesApiEnabled:false), with immutable prompt preservation and fresh disposable OpenAI credentials pointing only at the gateway. Responses API, tools, extra-body/provider variants and streaming remain unsupported. Earlier model versions are inventoried but unqualified. Explicit OpenAI chat HTTP bindings use the same mock/local/replay protocol; URL appearance alone grants no permission.
 

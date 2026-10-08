@@ -13,11 +13,12 @@ export function consoleTest(t:TestResult):string {
 }
 export function junitReport(result:SuiteResult):string {
   const safe=redactor.object(projectEvidence(result)) as SuiteResult;
-  const failures=safe.tests.filter(t=>t.status==='failed').length,errors=safe.tests.filter(t=>t.status==='error').length;
+  const failures=safe.tests.filter(t=>t.status==='failed').length,errors=safe.tests.filter(t=>t.status==='error').length+(safe.runtimeError?1:0);
   const cases=safe.tests.map(t=>{
     const level=t.verificationKind?`<properties><property name="wfcheck.verificationKind" value="${xml(t.verificationKind)}"/></properties>`:'';
     const body=t.status==='error'?`<error type="${xml(t.error?.code)}" message="${xml(t.error?.message)}"/>`:t.status==='failed'?`<failure message="Regression assertion failure">${xml(t.assertions.filter(a=>!a.passed).map(a=>a.message).join('\n'))}</failure>`:'';
     return `  <testcase name="${xml(t.id)}" classname="${xml(safe.suite)}" time="${t.durationMs/1000}">${level}${body}</testcase>`;
   });
-  return `<?xml version="1.0" encoding="UTF-8"?>\n<testsuite name="${xml(safe.suite)}" tests="${safe.tests.length}" failures="${failures}" errors="${errors}" skipped="0" time="${safe.durationMs/1000}">\n${cases.join('\n')}\n</testsuite>\n`;
+  if(safe.runtimeError)cases.push(`  <testcase name="Runtime cleanup" classname="wfcheck.harness" time="0"><error type="${xml(safe.runtimeError.code)}" message="${xml(safe.runtimeError.message)}"/></testcase>`);
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<testsuite name="${xml(safe.suite)}" tests="${cases.length}" failures="${failures}" errors="${errors}" skipped="0" time="${safe.durationMs/1000}">\n${cases.join('\n')}\n</testsuite>\n`;
 }

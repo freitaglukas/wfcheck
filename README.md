@@ -92,4 +92,4 @@ npm pack --dry-run
 npm pack                # local tarball only
 ```
 
-No lint script currently exists. `wfcheck init` copies generic examples only. The standalone receipt consumer lives in `/Users/friday/dev/n8n-workflows` and is excluded from the package. See [historical feasibility](docs/feasibility.md), [license texts](THIRD_PARTY_NOTICES.md) and [licensing questions](docs/licensing-questions.md).
+No lint script currently exists. `wfcheck init` copies generic examples only. The standalone receipt consumer lives in a separate private repository and is excluded from the package. See [historical feasibility](docs/feasibility.md), [license texts](THIRD_PARTY_NOTICES.md) and [licensing questions](docs/licensing-questions.md).

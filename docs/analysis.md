@@ -4,6 +4,8 @@ Use Node 24 and run wfcheck inspect workflow.json --json artifacts/inspection.js
 
 Public reports omit source Code, names, arbitrary parameters, credential references/values and account metadata. Runtime projection is a separate operation and rejects pinned/static state and unknown runtime fields. Supported inventory is not a claim of business correctness or arbitrary native-node execution.
 
+Inventory readiness describes structural analysis, not permission to execute. `validatePlan` requires original workflow bytes in `PlanConfiguration.workflowSource`, separately from the reportable draft. Their hash must match the inspected source. It validates the authored candidate through the version-two preparation rules, including exact HTTP/table bindings and Code review; missing source or unsupported parameters block readiness. Raw workflow source is never added to draft reports.
+
 Optional local assistance: `wfcheck plan workflow.json --out tests.draft.yaml --assist local --model qwen2.5:0.5b`. Without --assist, planning performs zero inference. The assistant sees a bounded inventory/requirements projection, never sharing/history metadata or Code by default. --include-code is explicit hash/redaction review; do not use it on sensitive or secret-bearing code. Projection hashes and model digest provenance are recorded.
 
 Only fixture/assertion/intent/unresolved suggestions are accepted. Bindings, credentials, runtime endpoints, source changes and effect grants are absent from the proposal schema. Inferred suggestions never replace authored expectations or clear deterministic blockers. Invalid/truncated output preserves the deterministic draft with a visible assistance error and exit 2. Ordinary reviewed suites run without invoking the assistant.

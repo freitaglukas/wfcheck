@@ -10,7 +10,7 @@ import type {GatewayTransport} from '../gateway/transport.js';
 import type { RuntimeAdapter,RuntimeHandle,Evidence } from './types.js';
 export interface CompiledTest {spec:TestSpec;source:string;fixture:Record<string,unknown>;fixtureHash:string;}
 export interface TestResult {id:string;verificationKind?:'smoke'|'baseline'|'behavior';status:'passed'|'failed'|'error';durationMs:number;assertions:AssertionResult[];error?:{code:string;message:string};evidence?:Evidence;sourceHash?:string;analysisHash?:string;fixtureHash?:string;changes?:string[];cleanup:{status:'not-created'|'cleaned'|'failed';workflowId?:string;message?:string};}
-export interface SuiteResult {schemaVersion:1|2;runtime?:import('./factory.js').RuntimeCapabilities;runId:string;suite:string;startedAt:string;durationMs:number;plannedExecutions:number;tests:TestResult[];exitCode:0|1|2;}
+export interface SuiteResult {schemaVersion:1|2;runtime?:import('./factory.js').RuntimeCapabilities;runtimeError?:{code:string;message:string};runId:string;suite:string;startedAt:string;durationMs:number;plannedExecutions:number;tests:TestResult[];exitCode:0|1|2;}
 export function newRunId():string{return randomUUID().replaceAll('-','');}
 export async function compileSuite(suite:Suite,base:string):Promise<CompiledTest[]> {
   redactor.add(...suite.redactValues);

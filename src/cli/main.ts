@@ -92,7 +92,21 @@ program.command('run').argument('<suite>').option('--runtime <kind>','cloud or d
     const max=Number(opts.maxExecutions);if(!Number.isInteger(max)||max<1||max>20||compiled.length>max)throw new HarnessError('CONFIG','Planned suite exceeds --max-executions or the hard limit of 20');
     await prepareModelSelections(compiled,s.signal);planned=compiled.length;console.log(`Planned n8n executions: ${planned} (serial; limit ${max}; webhook triggers are never retried)`);announced=true;
     if(!['cloud','docker'].includes(opts.runtime))throw new HarnessError('CONFIG','Unknown runtime');
-    if(opts.runtime==='docker'){const stateDirectory=resolve(process.env.WFCHECK_STATE_DIR??'.wfcheck');unlock=await acquireLock(stateDirectory);runtime=await createRuntime({runtime:'docker',stateDirectory,keepOnFailure:opts.keepRuntimeOnFailure},s.signal);const result=await runCompiledV2(suite,compiled,runtime.adapter,runtime.gateway,runtime.gatewayUrl,runId,s.signal,t=>console.log(consoleTest(t)),runtime.capabilities);await reports(result,opts,reportInputs);process.exitCode=result.exitCode;await runtime.close(result.exitCode!==0);return;}
+    if(opts.runtime==='docker'){
+      const stateDirectory=resolve(process.env.WFCHECK_STATE_DIR??'.wfcheck');unlock=await acquireLock(stateDirectory);
+      runtime=await createRuntime({runtime:'docker',stateDirectory,keepOnFailure:opts.keepRuntimeOnFailure},s.signal);
+      const result=await runCompiledV2(suite,compiled,runtime.adapter,runtime.gateway,runtime.gatewayUrl,runId,s.signal,t=>console.log(consoleTest(t)),runtime.capabilities);
+      await reports(result,opts,reportInputs);process.exitCode=result.exitCode;
+      const session=runtime;runtime=undefined;
+      try{await session.close(result.exitCode!==0);}
+      catch(error){
+        result.runtimeError={code:error instanceof HarnessError?error.code:'INFRASTRUCTURE',message:redactor.text(errorMessage(error))};
+        result.exitCode=2;process.exitCode=2;
+        console.error(`${result.runtimeError.code}: ${result.runtimeError.message}`);
+        try{await reports(result,opts,reportInputs);}catch(reportError){console.error(`REPORT: ${redactor.text(errorMessage(reportError))}`);}
+      }
+      return;
+    }
     const cfg=configuration();const client=new CloudClient(cfg.baseUrl,cfg.apiKey);unlock=await acquireLock(cfg.stateDirectory);
     const manifest=new Manifest(cfg.stateDirectory,runId,client.baseUrl);const journal=new ResourceJournal(cfg.stateDirectory,runId,client.baseUrl);const adapter=new N8nApiAdapter(client,manifest,journal);
     await adapter.doctor();const url=await publicGateway(gateway,tunnel,cfg,opts.tunnel,s.signal);
