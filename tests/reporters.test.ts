@@ -19,3 +19,4 @@ it('preserves adjacent fields when embedded secret arrays contain escaped braces
 it('preserves valid JSON evidence after stray unclosed or mismatched brackets',()=>{
  const r=new Redactor();for(const prefix of ['trace [','trace { ] ']){const out=r.text(prefix+'{"credential":{"password":"nested-private"},"visible":"keep"} suffix');expect(out).not.toContain('nested-private');expect(out).toContain('"visible":"keep"');expect(out).toContain(' suffix');}
 });
+it('retains declared verification level in JSON and JUnit evidence',()=>{const result:any={schemaVersion:2,runId:'r',suite:'s',startedAt:'now',durationMs:1,plannedExecutions:1,tests:[{id:'one',verificationKind:'smoke',status:'passed',durationMs:1,assertions:[],cleanup:{status:'cleaned'}}],exitCode:0};expect(JSON.parse(jsonReport(result)).tests[0].verificationKind).toBe('smoke');expect(junitReport(result)).toContain('name="wfcheck.verificationKind" value="smoke"');});

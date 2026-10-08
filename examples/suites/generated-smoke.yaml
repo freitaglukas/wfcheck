@@ -1,0 +1,20 @@
+schemaVersion: 2
+name: Generated workflow tests
+draft: true
+redactValues: []
+tests:
+  - id: one
+    workflow: ../workflows/correct.json
+    input:
+      kind: json
+      fixture: fixtures/input.json
+    triggerId: webhook
+    timeoutMs: 30000
+    bindings: []
+    tables: []
+    tableBindings: []
+    mocks: []
+    assertions:
+      - target: execution.status
+        equals: success
+    verificationKind: smoke

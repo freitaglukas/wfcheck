@@ -11,9 +11,9 @@ export function normalizeExecution(raw:any,workflow:Workflow):ExecutionObservati
     if(!Object.hasOwn(data,n.name))continue;
     if(!Array.isArray(data[n.name])||!data[n.name].length)throw new HarnessError('EVIDENCE',`Invalid node run evidence for ${n.name}`);
     nodes[n.id]=data[n.name].map((r:any)=>{
-      if(!r.data?.main){if(r.error)return {outputs:[],error:r.error};throw new HarnessError('EVIDENCE',`Missing node output evidence for ${n.name}`);}
-      if(!Array.isArray(r.data.main))throw new HarnessError('EVIDENCE','Invalid output evidence');
-      return {outputs:r.data.main.map((items:any)=>{if(!Array.isArray(items))throw new HarnessError('EVIDENCE','Missing output branch data');return items.map((item:any)=>{if(!item||!Object.hasOwn(item,'json'))throw new HarnessError('EVIDENCE','Missing item JSON evidence');return item.json;});}),error:r.error};
+      const output=r.data?.main??(n.type==='@n8n/n8n-nodes-langchain.lmChatOpenAi'?r.data?.ai_languageModel:undefined);if(!output){if(r.error)return {outputs:[],error:r.error};throw new HarnessError('EVIDENCE',`Missing node output evidence for ${n.name}`);}
+      if(!Array.isArray(output))throw new HarnessError('EVIDENCE','Invalid output evidence');
+      return {outputs:output.map((items:any)=>{if(!Array.isArray(items))throw new HarnessError('EVIDENCE','Missing output branch data');return items.map((item:any)=>{if(!item||!Object.hasOwn(item,'json'))throw new HarnessError('EVIDENCE','Missing item JSON evidence');return item.json;});}),error:r.error};
     });
   }
   return {id:String(raw.id),workflowId:String(raw.workflowId),status:raw.status,nodes};

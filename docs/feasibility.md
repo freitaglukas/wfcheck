@@ -1,4 +1,6 @@
-# Observed feasibility — 7 October 2026
+# Historical Cloud feasibility — 7 October 2026
+
+This document preserves the original Cloud-only spike. Its support counts and initial empty-instance audit are historical, not the current state. See [8 October generic acceptance](acceptance/generic-workflow-testing.md) for Docker, native nodes, models and external consumer qualification.
 
 Target: https://yaumo.app.n8n.cloud/. Original synthetic workflows and fake inline credentials only. No production/customer workflows or account settings were modified. The original handoff predates the current Cloud-first request; its local-container/native-interception gates remain separate.
 

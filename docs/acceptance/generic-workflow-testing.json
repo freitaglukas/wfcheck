@@ -1,0 +1,1127 @@
+{
+  "date": "2026-10-08",
+  "environment": {
+    "node": "24.18.0",
+    "docker": "29.5.3",
+    "platform": "macOS arm64"
+  },
+  "installedConsumer": {
+    "package": "wfcheck-local-alpha-0.1.0.tgz",
+    "inventoryHash": "f3d3e18001d6cbed4d80d9434f528e3c922b6c0f3bd9857c99e6653411162d33",
+    "sourceHash": "dd5857b07b5639de742800ef906ae6846bfec1ece9ace5696fbffbe600ad534a",
+    "result": {
+      "schemaVersion": 2,
+      "runtime": {
+        "kind": "docker",
+        "version": "2.42.4",
+        "imageDigest": "sha256:2e2e1cd958335d058d3a82354529b512eecada0d65729036eb45c39455ebd78f",
+        "nodeCatalogHash": "cb79cf8506c6da9ab7cf6413355cacb7abaa125ae26a8511bbfd0017e644daa8",
+        "triggerKinds": [
+          "webhook-json",
+          "form-file"
+        ],
+        "operations": [
+          "public-api",
+          "external-runner"
+        ],
+        "containment": "verified"
+      },
+      "runId": "632995c8fca740699d0ad4aff6fff3ca",
+      "suite": "external-order-acknowledgement",
+      "startedAt": "2026-10-08T01:06:51.865Z",
+      "durationMs": 4309,
+      "plannedExecutions": 1,
+      "tests": [
+        {
+          "id": "acknowledge",
+          "verificationKind": "behavior",
+          "status": "passed",
+          "durationMs": 4306,
+          "assertions": [
+            {
+              "target": "execution.status",
+              "passed": true,
+              "message": "execution.status passed",
+              "expected": "success",
+              "actual": "success"
+            },
+            {
+              "target": "request.json ack",
+              "passed": true,
+              "message": "request.json ack passed",
+              "expected": "order-synthetic-42",
+              "actual": "order-synthetic-42"
+            },
+            {
+              "target": "requests.count ack",
+              "passed": true,
+              "message": "requests.count ack passed",
+              "expected": 1,
+              "actual": 1
+            },
+            {
+              "target": "requests.unexpected",
+              "passed": true,
+              "message": "No unexpected requests"
+            }
+          ],
+          "fixtureHash": "67f6957f60768dcfbb54f0cb1997dfd57c63ec2933f57c37057723142d4aa318",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "eoMHOY4Y8QTgJtSt"
+          },
+          "sourceHash": "dd5857b07b5639de742800ef906ae6846bfec1ece9ace5696fbffbe600ad534a",
+          "analysisHash": "cba6c434646325552c58710d8b09c708140228ac74cdcc033b1d9a1b3056492a",
+          "changes": [
+            "name: unique project-owned copy",
+            "settings: save complete execution data with bounded timeout",
+            "HTTP notify: isolated binding, disposable authentication, bounded timeout and disabled redirects",
+            "Trigger input: unique correlation capability path"
+          ],
+          "evidence": {
+            "execution": {
+              "id": "1",
+              "workflowId": "eoMHOY4Y8QTgJtSt",
+              "status": "success",
+              "nodes": {
+                "input": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "headers": {
+                            "host": "127.0.0.1:53866",
+                            "connection": "keep-alive",
+                            "x-wfcheck-correlation": "aa6d9ba4-445a-44ac-b9c6-73c68646522c",
+                            "content-type": "application/json",
+                            "accept": "*/*",
+                            "accept-language": "*",
+                            "sec-fetch-mode": "cors",
+                            "user-agent": "node",
+                            "accept-encoding": "gzip, deflate",
+                            "content-length": "34"
+                          },
+                          "params": {},
+                          "query": {},
+                          "body": {
+                            "reference": "order-synthetic-42"
+                          },
+                          "webhookUrl": "http://localhost:5678/webhook/wfcheck-632995c8fca740699d0ad4aff6fff3ca-acknowledge-[REDACTED]",
+                          "executionMode": "production"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "map": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "reference": "order-synthetic-42"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "notify": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "accepted": true
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/ack",
+                "headers": {
+                  "accept": "application/json,text/html,application/xhtml+xml,application/xml,text/*;q=0.9, image/*;q=0.8, */*;q=0.7",
+                  "content-type": "application/json",
+                  "user-agent": "n8n",
+                  "content-length": "34",
+                  "accept-encoding": "gzip, compress, deflate, br",
+                  "host": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-gateway:43199",
+                  "connection": "close"
+                },
+                "body": "{\"reference\":\"order-synthetic-42\"}",
+                "json": {
+                  "reference": "order-synthetic-42"
+                },
+                "unexpected": false,
+                "receivedAt": "2026-10-08T01:06:55.238Z",
+                "mockId": "ack",
+                "responseStatus": 200
+              }
+            ],
+            "gatewayErrors": [],
+            "modelCalls": [],
+            "trigger": {
+              "transport": "received",
+              "responseStatus": 200
+            }
+          }
+        }
+      ],
+      "exitCode": 0
+    },
+    "journal": {
+      "schemaVersion": 2,
+      "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+      "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+      "entries": [
+        {
+          "intentId": "0799d7aa-5f98-4bad-9a1c-9cdf0b0cd078",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "network",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-net",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "eaeeb5fe4eb62b7807073283ec308fb30ac9a5dee2d7002e57e35b70b000f1e6"
+        },
+        {
+          "intentId": "da63c08e-9762-45eb-9461-d5d1badc312b",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "volume",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-state",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-state"
+        },
+        {
+          "intentId": "8299176e-378e-4b53-9bda-bc5837535329",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "container",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-initialize",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "1310661324ac63e37b9517eeab2beb99b2f474687f6a92966bd6c1f3417eb7fa"
+        },
+        {
+          "intentId": "15c6855e-1cd2-4c16-9c73-2b6563285218",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "container",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-import",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "b7eea15b784ebef557d3a47f691d7e017ce69bb690565396fc376fe50c41caf0"
+        },
+        {
+          "intentId": "306149d8-c458-4c65-af81-32767e492361",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "container",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-n8n",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "b59ed92d33a12f5acbedb34b76ac5b1d825adbee5eb13caed0000dd3ccbf7389"
+        },
+        {
+          "intentId": "67c3eb20-936f-40c8-b681-c8f04a17f47b",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "container",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-runner",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "8146835d8c25f07f8c50386a9cc783f480d594e3ddfdc699fe29c2f205251ce0"
+        },
+        {
+          "intentId": "8ef61410-0a97-4b8b-8c97-32a797bd7005",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "network",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-uplink",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "8036d71da70ecb153d84f3d40c792de56ea8dc7294652d30093c328c0896dc05"
+        },
+        {
+          "intentId": "32f8e07b-cce2-495d-9203-c9186f039f9a",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "kind": "container",
+          "name": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-gateway",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "state": "cleaned",
+          "id": "1c5e7915f2cbb22e77b9027253fb312402e945f011a896199470b31ed1363d05"
+        },
+        {
+          "intentId": "60c68382-1d39-44ce-aa60-2b5d4a28c10c",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "testId": "acknowledge",
+          "kind": "workflow",
+          "name": "wfcheck-dev-632995c8fca740699d0ad4aff6fff3ca-acknowledge",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "parentId": "wfcheck-9b31dcabeb4149b68c9a6c3828ffddaa-state",
+          "state": "cleaned",
+          "id": "eoMHOY4Y8QTgJtSt"
+        },
+        {
+          "intentId": "ae91ac24-9e67-4426-8e3a-7673c9a051ee",
+          "runId": "9b31dcabeb4149b68c9a6c3828ffddaa",
+          "testId": "acknowledge",
+          "kind": "execution",
+          "name": "aa6d9ba4-445a-44ac-b9c6-73c68646522c",
+          "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+          "parentId": "eoMHOY4Y8QTgJtSt",
+          "state": "cleaned",
+          "id": "1"
+        }
+      ]
+    },
+    "sentinel": {
+      "id": "77cdba2e33418209d38476ffb71c8adb3cc3949ec560deb5f647dbc09dc19fc4",
+      "name": "acceptance-sentinel-1791421551021",
+      "preserved": true
+    }
+  },
+  "models": {
+    "selection": {
+      "endpoint": "http://127.0.0.1:49734",
+      "model": "qwen2.5:0.5b",
+      "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.35.1",
+      "capabilities": [
+        "completion",
+        "tools"
+      ],
+      "remote": false,
+      "provider": "ollama"
+    },
+    "recordingHash": "8c59ea9b8c8b303627904759aa85a87afb23b33dbe0d1f95227daefa3e43db05",
+    "inferenceServiceStopped": true
+  },
+  "modelRuns": [
+    {
+      "runId": "chat-proof",
+      "suite": "Generic native chat",
+      "startedAt": "2026-10-08T00:28:40.070Z",
+      "durationMs": 8029,
+      "exitCode": 0,
+      "tests": [
+        {
+          "id": "chat",
+          "status": "passed",
+          "sourceHash": "cc864caaa67d18dcc5f4dfbac1192a57a95726078e0b9df54e43b40eb81bc9f3",
+          "analysisHash": "25331d8588f7e7c4b1af46984b6edf941642646df38ab90c3ab0edf53b9a325d",
+          "fixtureHash": "a048c455c36ae1bc5676a7764529f15cedec99010c7d81124c04dbf9dca5c2e2",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "sxpY1VrIUbNCs0fw"
+          },
+          "executionId": "1",
+          "workflowId": "sxpY1VrIUbNCs0fw",
+          "n8nStatus": "success",
+          "modelCalls": [
+            {
+              "purpose": "workflow",
+              "nodeId": "model",
+              "mode": "mock",
+              "status": "success",
+              "requestHash": "60a7272a44322a8c30c681037fd138030435dd6a6113bd4c3abd4c844b678342",
+              "responseHash": "c95d38b7769afe969adce78ff7e0b2bb98f95745f09d59f6245380c71e5e657d",
+              "response": {
+                "id": "synthetic-completion",
+                "object": "chat.completion",
+                "model": "test-model",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "{\"status\":\"synthetic\"}"
+                    },
+                    "finish_reason": "stop"
+                  }
+                ],
+                "usage": {
+                  "prompt_tokens": 5,
+                  "completion_tokens": 8,
+                  "total_tokens": 13
+                }
+              },
+              "durationMs": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": "local-proof",
+      "suite": "Generic native chat",
+      "startedAt": "2026-10-08T00:26:15.164Z",
+      "durationMs": 6386,
+      "exitCode": 0,
+      "tests": [
+        {
+          "id": "chat",
+          "status": "passed",
+          "sourceHash": "cc864caaa67d18dcc5f4dfbac1192a57a95726078e0b9df54e43b40eb81bc9f3",
+          "analysisHash": null,
+          "fixtureHash": "a048c455c36ae1bc5676a7764529f15cedec99010c7d81124c04dbf9dca5c2e2",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "Cl16F7iIxdmmnM4u"
+          },
+          "executionId": "1",
+          "workflowId": "Cl16F7iIxdmmnM4u",
+          "n8nStatus": "success",
+          "modelCalls": [
+            {
+              "purpose": "workflow",
+              "nodeId": "model",
+              "mode": "local",
+              "status": "success",
+              "requestHash": "60a7272a44322a8c30c681037fd138030435dd6a6113bd4c3abd4c844b678342",
+              "selection": {
+                "endpoint": "http://192.168.65.254:49734",
+                "model": "qwen2.5:0.5b",
+                "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+                "runtimeVersion": "0.35.1",
+                "capabilities": [
+                  "completion",
+                  "tools"
+                ],
+                "remote": false,
+                "provider": "ollama"
+              },
+              "settings": {
+                "temperature": 0,
+                "seed": 0,
+                "maxOutputTokens": 32,
+                "contextTokens": 8192,
+                "timeoutMs": 60000
+              },
+              "durationMs": 601,
+              "response": {
+                "id": "wfcheck-74168b97-6c4c-4f80-83e5-e94e5b284fd6",
+                "object": "chat.completion",
+                "model": "qwen2.5:0.5b",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "{\"status\":\"synthetic\"}"
+                    },
+                    "finish_reason": "stop"
+                  }
+                ],
+                "usage": {
+                  "prompt_tokens": "[REDACTED]",
+                  "completion_tokens": "[REDACTED]"
+                }
+              },
+              "responseHash": "138854caeea4624130f9cefc42916ce0b62cb273a3310c5f71d7587441f861a8"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runId": "local-proof",
+      "suite": "Generic native chat",
+      "startedAt": "2026-10-08T00:26:21.559Z",
+      "durationMs": 5525,
+      "exitCode": 0,
+      "tests": [
+        {
+          "id": "replay",
+          "status": "passed",
+          "sourceHash": "cc864caaa67d18dcc5f4dfbac1192a57a95726078e0b9df54e43b40eb81bc9f3",
+          "analysisHash": null,
+          "fixtureHash": "a048c455c36ae1bc5676a7764529f15cedec99010c7d81124c04dbf9dca5c2e2",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "dVAGFMHGg2ezqN7W"
+          },
+          "executionId": "2",
+          "workflowId": "dVAGFMHGg2ezqN7W",
+          "n8nStatus": "success",
+          "modelCalls": [
+            {
+              "purpose": "workflow",
+              "nodeId": "model",
+              "mode": "replay",
+              "status": "success",
+              "requestHash": "60a7272a44322a8c30c681037fd138030435dd6a6113bd4c3abd4c844b678342",
+              "responseHash": "138854caeea4624130f9cefc42916ce0b62cb273a3310c5f71d7587441f861a8",
+              "response": {
+                "id": "wfcheck-74168b97-6c4c-4f80-83e5-e94e5b284fd6",
+                "object": "chat.completion",
+                "model": "qwen2.5:0.5b",
+                "choices": [
+                  {
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "{\"status\":\"synthetic\"}"
+                    },
+                    "finish_reason": "stop"
+                  }
+                ],
+                "usage": {
+                  "prompt_tokens": "[REDACTED]",
+                  "completion_tokens": "[REDACTED]"
+                }
+              },
+              "durationMs": 0,
+              "selection": {
+                "endpoint": "http://127.0.0.1:49734",
+                "model": "qwen2.5:0.5b",
+                "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+                "runtimeVersion": "0.35.1",
+                "capabilities": [
+                  "completion",
+                  "tools"
+                ],
+                "remote": false,
+                "provider": "ollama"
+              },
+              "settings": {
+                "temperature": 0,
+                "seed": 0,
+                "maxOutputTokens": 32,
+                "contextTokens": 8192,
+                "timeoutMs": 60000
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "externalConsumer": {
+    "path": "/Users/friday/dev/n8n-workflows",
+    "commit": "259a21e",
+    "evidence": "receipt-intake/evidence/wfcheck-generic-acceptance-2026-10-08.json",
+    "sourceHash": "31ea3aec844288aacd670bd38eb0efc89b0d03486abe1eaed5ae1f5c28d6b75b",
+    "expectedFixtureHash": "a707e8e495d1b445619b9e1d1b223112b13b2040e8c59c34b5b1d10088f6f140",
+    "docker": {
+      "passed": 10,
+      "planned": 10,
+      "exitCode": 0
+    },
+    "repeat": {
+      "passed": 10,
+      "deliberateFailure": 1,
+      "planned": 11,
+      "exitCode": 1
+    },
+    "cloud": {
+      "passed": 10,
+      "planned": 10,
+      "exitCode": 0
+    },
+    "retainedResourcesUnchanged": true,
+    "finalJournalsClean": 7
+  },
+  "verification": {
+    "unit": 163,
+    "build": "passed",
+    "localLlm": 3,
+    "dockerFull": {
+      "tests": 11,
+      "files": 10,
+      "passed": 11,
+      "durationSeconds": 644.23
+    },
+    "installedAndNativeMock": 3,
+    "consumerUnit": 31,
+    "secretScan": {
+      "files": 245,
+      "actualSecrets": 2,
+      "violations": 0
+    },
+    "affectedDockerAfterReview": {
+      "passed": 4,
+      "durationSeconds": 193.7
+    },
+    "localLlmAfterReview": {
+      "passed": 3,
+      "durationSeconds": 73.89
+    },
+    "finalCloudAfterReview": {
+      "passed": 10,
+      "executions": "144-153"
+    }
+  },
+  "cleanup": {
+    "consumerJournals": 5,
+    "consumerLeftovers": 0,
+    "tunnels": "stopped",
+    "sharedImages": "retained caches",
+    "oldUncertainExecution": "reconciled only after exact backing-volume removal proof"
+  },
+  "review": {
+    "head": "1d6b1f4",
+    "initial": "1 Critical, 6 Important, 2 advisory Minor",
+    "fixPass": "all fixed, two advisory findings regraded Important; additional source/report overwrite fixed",
+    "reReview": false
+  },
+  "recoveryAfterServerRemoval": {
+    "result": {
+      "errors": [
+        "API recovery unavailable: Docker inspect failed with exit 1; workload stderr is withheld",
+        "workflow 9Sep3QcMkiWTIBQG: Owned n8n instance is unavailable for exact API resource recovery",
+        "table PnF9fsUddgLRjuca: Owned n8n instance is unavailable for exact API resource recovery"
+      ],
+      "leftovers": []
+    },
+    "records": [
+      {
+        "intentId": "e7d448fb-f213-4458-bba9-562568c78a60",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "network",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-net",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "2e542a2aa153e6a7b12fe78951a5301325e7c17c45d92a2fa37cd14ab635dc35"
+      },
+      {
+        "intentId": "8df18f91-d2d0-49b3-a585-36d0a391a3ac",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "volume",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-state",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-state"
+      },
+      {
+        "intentId": "da9ce5a0-93b2-4f45-999c-cc9f4160af54",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "container",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-initialize",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "1425deaa40a3046da1b08c2d89085fbfcc55a7b08355cc23cee4355742fc9c7b"
+      },
+      {
+        "intentId": "031d2168-4939-4ae9-a0ef-37050c07682a",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "container",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-import",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "d41c821cdc04d59ae269d2a47c87b3f314e2de55b86a9c42366243cba74b7a98"
+      },
+      {
+        "intentId": "fa9c676e-c392-4d31-8239-940440a47a2f",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "container",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-n8n",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "3689f045785eab5ac304f09f3220b047be56ce8fe3b509eed664b5ab0326fbfd"
+      },
+      {
+        "intentId": "d36a80cc-d653-4dfd-a0fb-1695211e0940",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "container",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-runner",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "00a2930599fb0c63bc56a3ed72b1594b70a9545d51270e021db845f8374e6a3d"
+      },
+      {
+        "intentId": "0a25aa31-8603-4356-beaf-ff83dff6a785",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "network",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-uplink",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "79557ee3194c3eb6e87485ee27aa42949580c9c2c1abe3588cd6b20a3a1151f1"
+      },
+      {
+        "intentId": "f1009b75-0e9d-4d64-9aa3-a27d4f8679eb",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "kind": "container",
+        "name": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-gateway",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "state": "cleaned",
+        "id": "abdc0ee3ddec1b580fe0fcc3c9b0a3a7eeac73e714a721cd00b0263891735014"
+      },
+      {
+        "intentId": "998e7791-d9dc-48f8-94c0-2d578e40d776",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "testId": "case",
+        "kind": "table",
+        "name": "wfcheck-dev-recovery-case-table-records",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "parentId": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-state",
+        "state": "cleaned",
+        "id": "PnF9fsUddgLRjuca",
+        "disposition": "owned-state-volume-removed"
+      },
+      {
+        "intentId": "908921e1-cf7b-450f-8340-e80d83a52e56",
+        "runId": "ec4faf71b52f4a7cb4b0b3d27c1a9a2a",
+        "testId": "case",
+        "kind": "workflow",
+        "name": "wfcheck-dev-recovery-case",
+        "ownerIdentity": "docker:a376337c-e4d2-4b86-ab6b-b00d72439a05",
+        "parentId": "wfcheck-ec4faf71b52f4a7cb4b0b3d27c1a9a2a-state",
+        "state": "cleaned",
+        "id": "9Sep3QcMkiWTIBQG",
+        "disposition": "owned-state-volume-removed"
+      }
+    ]
+  },
+  "modelsAfterReview": {
+    "selection": {
+      "endpoint": "http://127.0.0.1:53825",
+      "model": "qwen2.5:0.5b",
+      "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+      "runtimeVersion": "0.35.1",
+      "capabilities": [
+        "completion",
+        "tools"
+      ],
+      "remote": false,
+      "provider": "ollama"
+    },
+    "recordingHash": "dae4eac6816a39fc232ffe9a5765c7a57bd1d008e994434e8539384c0fe9d41c",
+    "inferenceServiceStopped": true,
+    "local": {
+      "schemaVersion": 2,
+      "runId": "local-proof",
+      "suite": "Generic native chat",
+      "startedAt": "2026-10-08T01:06:53.138Z",
+      "durationMs": 6837,
+      "plannedExecutions": 1,
+      "tests": [
+        {
+          "id": "chat",
+          "verificationKind": "behavior",
+          "status": "passed",
+          "durationMs": 6835,
+          "assertions": [
+            {
+              "target": "execution.status",
+              "passed": true,
+              "message": "execution.status passed",
+              "expected": "success",
+              "actual": "success"
+            },
+            {
+              "target": "node.json chain[0][0]",
+              "passed": true,
+              "message": "node.json chain[0][0] passed",
+              "expected": "{\"status\":\"synthetic\"}",
+              "actual": "{\"status\":\"synthetic\"}"
+            },
+            {
+              "target": "requests.unexpected",
+              "passed": true,
+              "message": "No unexpected requests"
+            }
+          ],
+          "fixtureHash": "a048c455c36ae1bc5676a7764529f15cedec99010c7d81124c04dbf9dca5c2e2",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "kOslmiBTKBsHy81q"
+          },
+          "sourceHash": "cc864caaa67d18dcc5f4dfbac1192a57a95726078e0b9df54e43b40eb81bc9f3",
+          "analysisHash": "25331d8588f7e7c4b1af46984b6edf941642646df38ab90c3ab0edf53b9a325d",
+          "changes": [
+            "name: unique project-owned copy",
+            "settings: save complete execution data with bounded timeout",
+            "Native chat chain: isolated non-streaming completion transport",
+            "Native chat model: isolated non-streaming completion transport",
+            "Trigger input: unique correlation capability path"
+          ],
+          "evidence": {
+            "execution": {
+              "id": "1",
+              "workflowId": "kOslmiBTKBsHy81q",
+              "status": "success",
+              "nodes": {
+                "input": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "headers": {
+                            "host": "127.0.0.1:53869",
+                            "connection": "keep-alive",
+                            "x-wfcheck-correlation": "9cf65818-324d-49f5-b3eb-19b81276e1a2",
+                            "content-type": "application/json",
+                            "accept": "*/*",
+                            "accept-language": "*",
+                            "sec-fetch-mode": "cors",
+                            "user-agent": "node",
+                            "accept-encoding": "gzip, deflate",
+                            "content-length": "78"
+                          },
+                          "params": {},
+                          "query": {},
+                          "body": {
+                            "prompt": "Return the JSON object {\"status\":\"synthetic\"}. No extra text."
+                          },
+                          "webhookUrl": "http://localhost:5678/webhook/wfcheck-local-proof-chat-[REDACTED]",
+                          "executionMode": "production"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "chain": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "text": "{\"status\":\"synthetic\"}"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "model": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "response": {
+                            "generations": [
+                              [
+                                {
+                                  "text": "{\"status\":\"synthetic\"}",
+                                  "generationInfo": {
+                                    "finish_reason": "stop"
+                                  }
+                                }
+                              ]
+                            ]
+                          },
+                          "tokenUsage": "[REDACTED]"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/native-model/model/v1/chat/completions",
+                "headers": {
+                  "host": "wfcheck-63c67d9f44744cb7be9ac3a6c88468dd-gateway:43199",
+                  "connection": "keep-alive",
+                  "accept": "application/json",
+                  "x-stainless-retry-count": "0",
+                  "x-stainless-lang": "js",
+                  "x-stainless-package-version": "6.46.0",
+                  "x-stainless-os": "Linux",
+                  "x-stainless-arch": "arm64",
+                  "x-stainless-runtime": "node",
+                  "x-stainless-runtime-version": "v26.7.0",
+                  "openai-platform": "org-qkmJQuJ2WnvoIKMr2UJwIJkZ",
+                  "user-agent": "langchainjs-openai/1.0.0 ((node/v26.7.0; linux; arm64))",
+                  "content-type": "application/json",
+                  "accept-language": "*",
+                  "sec-fetch-mode": "cors",
+                  "accept-encoding": "gzip, deflate",
+                  "content-length": "176"
+                },
+                "body": "{\"model\":\"test-model\",\"temperature\":0,\"stream\":false,\"max_tokens\":\"[REDACTED]\",\"messages\":[{\"role\":\"user\",\"content\":\"Return the JSON object {\\\"status\\\":\\\"synthetic\\\"}. No extra text.\"}]}",
+                "json": {
+                  "model": "test-model",
+                  "temperature": 0,
+                  "stream": false,
+                  "max_tokens": "[REDACTED]",
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "Return the JSON object {\"status\":\"synthetic\"}. No extra text."
+                    }
+                  ]
+                },
+                "unexpected": false,
+                "receivedAt": "2026-10-08T01:06:57.079Z",
+                "responseStatus": 200
+              }
+            ],
+            "gatewayErrors": [],
+            "modelCalls": [
+              {
+                "purpose": "workflow",
+                "nodeId": "model",
+                "mode": "local",
+                "status": "success",
+                "requestHash": "60a7272a44322a8c30c681037fd138030435dd6a6113bd4c3abd4c844b678342",
+                "selection": {
+                  "endpoint": "http://192.168.65.254:53825",
+                  "model": "qwen2.5:0.5b",
+                  "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+                  "runtimeVersion": "0.35.1",
+                  "capabilities": [
+                    "completion",
+                    "tools"
+                  ],
+                  "remote": false,
+                  "provider": "ollama"
+                },
+                "settings": {
+                  "temperature": 0,
+                  "seed": 0,
+                  "maxOutputTokens": 32,
+                  "contextTokens": 8192,
+                  "timeoutMs": 60000
+                },
+                "durationMs": 591,
+                "response": {
+                  "id": "wfcheck-1d1cd068-6496-4fef-a544-d1115f64c7fd",
+                  "object": "chat.completion",
+                  "model": "qwen2.5:0.5b",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"status\":\"synthetic\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "prompt_tokens": "[REDACTED]",
+                    "completion_tokens": "[REDACTED]"
+                  }
+                },
+                "responseHash": "1a703a81d86b155d53cf4f3f9a71cae2f2a631ab319f514ed2e62a5a3cc4eff6"
+              }
+            ],
+            "trigger": {
+              "transport": "received",
+              "responseStatus": 200
+            }
+          }
+        }
+      ],
+      "exitCode": 0
+    },
+    "replay": {
+      "schemaVersion": 2,
+      "runId": "local-proof",
+      "suite": "Generic native chat",
+      "startedAt": "2026-10-08T01:06:59.983Z",
+      "durationMs": 5519,
+      "plannedExecutions": 1,
+      "tests": [
+        {
+          "id": "replay",
+          "verificationKind": "behavior",
+          "status": "passed",
+          "durationMs": 5518,
+          "assertions": [
+            {
+              "target": "execution.status",
+              "passed": true,
+              "message": "execution.status passed",
+              "expected": "success",
+              "actual": "success"
+            },
+            {
+              "target": "node.json chain[0][0]",
+              "passed": true,
+              "message": "node.json chain[0][0] passed",
+              "expected": "{\"status\":\"synthetic\"}",
+              "actual": "{\"status\":\"synthetic\"}"
+            },
+            {
+              "target": "requests.unexpected",
+              "passed": true,
+              "message": "No unexpected requests"
+            }
+          ],
+          "fixtureHash": "a048c455c36ae1bc5676a7764529f15cedec99010c7d81124c04dbf9dca5c2e2",
+          "cleanup": {
+            "status": "cleaned",
+            "workflowId": "G5sjru8pjheUighV"
+          },
+          "sourceHash": "cc864caaa67d18dcc5f4dfbac1192a57a95726078e0b9df54e43b40eb81bc9f3",
+          "analysisHash": "25331d8588f7e7c4b1af46984b6edf941642646df38ab90c3ab0edf53b9a325d",
+          "changes": [
+            "name: unique project-owned copy",
+            "settings: save complete execution data with bounded timeout",
+            "Native chat chain: isolated non-streaming completion transport",
+            "Native chat model: isolated non-streaming completion transport",
+            "Trigger input: unique correlation capability path"
+          ],
+          "evidence": {
+            "execution": {
+              "id": "2",
+              "workflowId": "G5sjru8pjheUighV",
+              "status": "success",
+              "nodes": {
+                "input": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "headers": {
+                            "host": "127.0.0.1:53869",
+                            "connection": "keep-alive",
+                            "x-wfcheck-correlation": "478107bd-c131-48cb-9cea-0fedf3756ee0",
+                            "content-type": "application/json",
+                            "accept": "*/*",
+                            "accept-language": "*",
+                            "sec-fetch-mode": "cors",
+                            "user-agent": "node",
+                            "accept-encoding": "gzip, deflate",
+                            "content-length": "78"
+                          },
+                          "params": {},
+                          "query": {},
+                          "body": {
+                            "prompt": "Return the JSON object {\"status\":\"synthetic\"}. No extra text."
+                          },
+                          "webhookUrl": "http://localhost:5678/webhook/wfcheck-local-proof-replay-[REDACTED]",
+                          "executionMode": "production"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "chain": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "text": "{\"status\":\"synthetic\"}"
+                        }
+                      ]
+                    ]
+                  }
+                ],
+                "model": [
+                  {
+                    "outputs": [
+                      [
+                        {
+                          "response": {
+                            "generations": [
+                              [
+                                {
+                                  "text": "{\"status\":\"synthetic\"}",
+                                  "generationInfo": {
+                                    "finish_reason": "stop"
+                                  }
+                                }
+                              ]
+                            ]
+                          },
+                          "tokenUsage": "[REDACTED]"
+                        }
+                      ]
+                    ]
+                  }
+                ]
+              }
+            },
+            "requests": [
+              {
+                "method": "POST",
+                "path": "/native-model/model/v1/chat/completions",
+                "headers": {
+                  "host": "wfcheck-63c67d9f44744cb7be9ac3a6c88468dd-gateway:43199",
+                  "connection": "keep-alive",
+                  "accept": "application/json",
+                  "x-stainless-retry-count": "0",
+                  "x-stainless-lang": "js",
+                  "x-stainless-package-version": "6.46.0",
+                  "x-stainless-os": "Linux",
+                  "x-stainless-arch": "arm64",
+                  "x-stainless-runtime": "node",
+                  "x-stainless-runtime-version": "v26.7.0",
+                  "openai-platform": "org-qkmJQuJ2WnvoIKMr2UJwIJkZ",
+                  "user-agent": "langchainjs-openai/1.0.0 ((node/v26.7.0; linux; arm64))",
+                  "content-type": "application/json",
+                  "accept-language": "*",
+                  "sec-fetch-mode": "cors",
+                  "accept-encoding": "gzip, deflate",
+                  "content-length": "176"
+                },
+                "body": "{\"model\":\"test-model\",\"temperature\":0,\"stream\":false,\"max_tokens\":\"[REDACTED]\",\"messages\":[{\"role\":\"user\",\"content\":\"Return the JSON object {\\\"status\\\":\\\"synthetic\\\"}. No extra text.\"}]}",
+                "json": {
+                  "model": "test-model",
+                  "temperature": 0,
+                  "stream": false,
+                  "max_tokens": "[REDACTED]",
+                  "messages": [
+                    {
+                      "role": "user",
+                      "content": "Return the JSON object {\"status\":\"synthetic\"}. No extra text."
+                    }
+                  ]
+                },
+                "unexpected": false,
+                "receivedAt": "2026-10-08T01:07:03.270Z",
+                "responseStatus": 200
+              }
+            ],
+            "gatewayErrors": [],
+            "modelCalls": [
+              {
+                "purpose": "workflow",
+                "nodeId": "model",
+                "mode": "replay",
+                "status": "success",
+                "requestHash": "60a7272a44322a8c30c681037fd138030435dd6a6113bd4c3abd4c844b678342",
+                "responseHash": "1a703a81d86b155d53cf4f3f9a71cae2f2a631ab319f514ed2e62a5a3cc4eff6",
+                "response": {
+                  "id": "wfcheck-1d1cd068-6496-4fef-a544-d1115f64c7fd",
+                  "object": "chat.completion",
+                  "model": "qwen2.5:0.5b",
+                  "choices": [
+                    {
+                      "index": 0,
+                      "message": {
+                        "role": "assistant",
+                        "content": "{\"status\":\"synthetic\"}"
+                      },
+                      "finish_reason": "stop"
+                    }
+                  ],
+                  "usage": {
+                    "prompt_tokens": "[REDACTED]",
+                    "completion_tokens": "[REDACTED]"
+                  }
+                },
+                "durationMs": 0,
+                "selection": {
+                  "endpoint": "http://127.0.0.1:53825",
+                  "model": "qwen2.5:0.5b",
+                  "digest": "a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67",
+                  "runtimeVersion": "0.35.1",
+                  "capabilities": [
+                    "completion",
+                    "tools"
+                  ],
+                  "remote": false,
+                  "provider": "ollama"
+                },
+                "settings": {
+                  "temperature": 0,
+                  "seed": 0,
+                  "maxOutputTokens": 32,
+                  "contextTokens": 8192,
+                  "timeoutMs": 60000
+                }
+              }
+            ],
+            "trigger": {
+              "transport": "received",
+              "responseStatus": 200
+            }
+          }
+        }
+      ],
+      "exitCode": 0
+    }
+  }
+}

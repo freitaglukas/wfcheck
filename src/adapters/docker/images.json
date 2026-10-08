@@ -1,0 +1,15 @@
+{
+  "version": "2.42.4",
+  "n8n": {
+    "arm64": "docker.n8n.io/n8nio/n8n@sha256:2e2e1cd958335d058d3a82354529b512eecada0d65729036eb45c39455ebd78f",
+    "amd64": "docker.n8n.io/n8nio/n8n@sha256:667c1ec79603670c5b4bfbc38f344016814cca79971dca72e58ea139d8a4023b"
+  },
+  "runner": {
+    "arm64": "docker.io/n8nio/runners@sha256:8da6ea7f99f217484fd1ab3aacbfb6b79d85af04425cc6e50c0766f8f65c00fe",
+    "amd64": "docker.io/n8nio/runners@sha256:3b1a7102c37c2c976f0cc17d44dfdc4adcea3dd6ef1628f60ff3c1500b26e164"
+  },
+  "gatewayBase": {
+    "arm64": "node@sha256:eef73a25205e27bd016ce672af71560ad6b681142ddf00ff63c7b3098eafcd4d",
+    "amd64": "node@sha256:4ba75f835bb8802193e4c114572113d4b26f95f6f094f4b5229d2a77773e0afc"
+  }
+}

@@ -1,0 +1,11 @@
+import type {RuntimeHandle,CompiledInput,TriggerAttempt} from '../../runtime/types.js';import {HarnessError} from '../../security/errors.js';import {redactor} from '../../security/redact.js';
+export interface TriggerAuth {user:string;password:string;}
+export function markerFileName(name:string,marker:string){const at=name.lastIndexOf('.');const extension=at>=0?name.slice(at):'';const base=(at>=0?name.slice(0,at):name).replace(/[^A-Za-z0-9_-]/g,'_').slice(0,64);return base+'--wfcheck-'+marker+extension;}
+export async function submitTrigger(baseUrl:string,h:RuntimeHandle,input:CompiledInput,marker:string,signal:AbortSignal,auth?:TriggerAuth,send:typeof fetch=fetch):Promise<TriggerAttempt>{
+ const form=h.prepared.trigger?.kind==='form-file';const headers:Record<string,string>={'x-wfcheck-correlation':marker};let body:BodyInit;
+ if(form){if(input.kind!=='file'||!auth)throw new HarnessError('CONFIG','Form input/authentication unavailable');const name=markerFileName(input.fileName,marker);h.prepared.trigger!.fileName=name;const fields=new FormData();fields.append(h.prepared.trigger!.transportField!,new Blob([Uint8Array.from(input.bytes)],{type:input.mimeType}),name);body=fields;const basic=Buffer.from(auth.user+':'+auth.password).toString('base64');redactor.add(auth.password,basic);headers.authorization='Basic '+basic;}
+ else{if(input.kind!=='json')throw new HarnessError('CONFIG','Webhook requires JSON');headers['content-type']='application/json';body=JSON.stringify(input.data);}
+ let response:Response;try{response=await send(baseUrl+(form?'/form/':'/webhook/')+h.prepared.webhookPath,{method:'POST',headers,body,redirect:'error',signal:AbortSignal.any([signal,AbortSignal.timeout(form?30000:15000)])});}
+ catch{if(form)return {transport:'uncertain'};throw new HarnessError('TRIGGER','Webhook transport failed; submission is never retried');}
+ await response.body?.cancel();if(form?[401,403,404].includes(response.status):!response.ok)throw new HarnessError('TRIGGER',`Intake returned HTTP ${response.status}; this is an infrastructure rejection`);return {transport:'received',responseStatus:response.status};
+}

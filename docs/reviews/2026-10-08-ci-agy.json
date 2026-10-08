@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-08",
+  "reviewer": "Antigravity CLI / Gemini 3.1 Pro Low",
+  "scope": "Focused CI and clean-checkout publication delta; not a complete runtime re-review",
+  "files": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "69ed437939f52752ef5b167f908fd9d9758de5b7ee5ba7e19fa489941c35c40b"
+    },
+    {
+      "path": ".github/scripts/package-smoke.mjs",
+      "sha256": "d34e3f680a79feb2c269cae597aff69f6622449c4caefe4c4674d17c0f1544cb"
+    },
+    {
+      "path": "tests/setup.ts",
+      "sha256": "1a9c3a442c876f91920575e0172a1b4701502aa8705178e77d2e11321fe9fa8b"
+    },
+    {
+      "path": "vitest.config.ts",
+      "sha256": "375eef80e7135521fd06d8205ee1fb18f6ee0504abd6e747424244b5a1e4ab0d"
+    },
+    {
+      "path": "vitest.integration.config.ts",
+      "sha256": "81cf21f2e5ab6be2f65e322cf0b8ccfe0709b77ab03c744acca8993b8d10d553"
+    },
+    {
+      "path": "tests/package-boundary.test.ts",
+      "sha256": "668697800150f77a5cbf256f88f15ee55be1ccf620fe3dbb8e33cc744039fdf7"
+    },
+    {
+      "path": "docs/repository-policy.md",
+      "sha256": "4412e27e068bc679c56cf72d6bf5e0788ff2d8fd7a4c7e69213c0fbc15b011ad"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "sha256": "edbc62243b0403c7637225cf9dcfbdc09acf2f266d8f9a39c1ad4195d0cc68b7"
+    }
+  ],
+  "result": {
+    "verdict": "pass",
+    "findings": [],
+    "limitations": "Review is restricted strictly to the provided CI workflow configuration, boundary tests, and package smoke scripts. It assumes the underlying GitHub Actions runner environment, Node.js binaries, and npm toolchain are secure. Validation logic for npm 11 vs. npm 12 output using Object.values() correctly handles both array and object returns. No dynamic execution, dependency tree audits, or static analysis of the unprovided CLI source files were performed."
+  }
+}

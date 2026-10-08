@@ -1,0 +1,37 @@
+schemaVersion: 2
+name: Native keyed table behavior
+runtime: docker
+tests:
+  - id: upsert
+    workflow: ../workflows/native-table.json
+    input:
+      kind: json
+      fixture: ../fixtures/record.json
+    verificationKind: behavior
+    timeoutMs: 90000
+    tables:
+      - id: records
+        columns:
+          - { name: key, type: string }
+          - { name: value, type: number }
+          - { name: notes, type: string }
+        seedRows:
+          - { key: one, value: 1, notes: manual }
+    tableBindings:
+      - { nodeId: write0, expectedResourceId: source-table-placeholder, tableId: records }
+      - { nodeId: write1, expectedResourceId: source-table-placeholder, tableId: records }
+    mocks: []
+    assertions:
+      - { target: execution.status, equals: success }
+      - { target: table.count, tableId: records, equals: 1 }
+      - { target: table.row, tableId: records, key: { field: key, value: one }, pointer: /value, equals: 2 }
+      - { target: table.row, tableId: records, key: { field: key, value: one }, pointer: /notes, equals: manual }
+      - target: node.schema
+        nodeId: write1
+        schema:
+          type: object
+          required: [key, value, notes]
+          properties:
+            key: { type: string, enum: [one] }
+            value: { type: integer, minimum: 2, maximum: 2 }
+            notes: { type: string, enum: [manual] }

@@ -1,0 +1,93 @@
+{
+  "name": "Synthetic local chat",
+  "nodes": [
+    {
+      "id": "input",
+      "name": "Input",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chat",
+        "responseMode": "onReceived",
+        "options": {}
+      }
+    },
+    {
+      "id": "chain",
+      "name": "Basic Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.prompt }}",
+        "hasOutputParser": false,
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      }
+    },
+    {
+      "id": "model",
+      "name": "Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        200,
+        200
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "test-model",
+          "mode": "list"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0,
+          "maxTokens": 32,
+          "maxRetries": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "original-model-credential",
+          "name": "Original account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Input": {
+      "main": [
+        [
+          {
+            "node": "Basic Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

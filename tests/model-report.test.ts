@@ -1,0 +1,2 @@
+import {it,expect} from 'vitest';import {jsonReport} from '../src/reporters/index.js';
+it('shows typed generation budgets while arbitrary token fields stay redacted',()=>{const r:any={schemaVersion:2,tests:[{evidence:{modelCalls:[{settings:{temperature:0,seed:0,maxOutputTokens:32,contextTokens:8192,timeoutMs:1000},token:'private-value'}]}}]};const j=JSON.parse(jsonReport(r));expect(j.tests[0].evidence.modelCalls[0].settings.maxOutputTokens).toBe(32);expect(j.tests[0].evidence.modelCalls[0].token).toBe('[REDACTED]');});
