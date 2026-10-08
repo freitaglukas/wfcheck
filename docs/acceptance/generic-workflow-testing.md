@@ -1,65 +1,76 @@
-# Generic workflow testing acceptance — 8 October 2026
+# Generic runtime verification
 
-The approved implementation extends wfcheck as a workflow-agnostic analyzer, deterministic planner and real isolated n8n test runner. Application behavior and expected values remain in an external project. There is no Grid integration, approval ledger, OCR implementation or receipt normalization in CLI runtime code. The original Grid-heavy proposal was replaced by the owner's later standalone-workflow and generic-CLI direction.
+wfcheck accepts an n8n export as its analysis input. Inspection inventories the
+whole graph, including unsupported nodes, and planning produces a reviewable
+suite. Execution uses qualified node adapters and explicit fixtures, dependency
+bindings, effect review and assertions. Application logic, commercial rules,
+deployment state and integration fixtures belong in the consumer project.
 
-## Verified vertical slices
+## Reproduce
 
-- Offline inventory retains complete supported/unknown node graphs, AI edges, dependencies and provenance without executing exports or exposing Code/body/credential contents by default. Planner drafts remain blocked until independent fixtures, effect review, bindings and oracles are supplied. Local assistance can propose data, not authority.
-- Actual n8n 2.42.4 boots unattended in an owned empty volume through documented entity export/import commands. Matching external runner executes reviewed Code, native file/PDF nodes and HTTP requests. Startup probes prove n8n/runner cannot reach public IPv4/IPv6, external DNS or host models. Only the gateway has a trusted uplink. No Cloud credentials or tunnel are needed for Docker.
-- A clean temporary consumer installed npm-pack output and used help/init/inspect/plan/run/cleanup. Its independently authored order-reference expectation reached the actual HTTP request. An unfamiliar custom node retained full inventory and exited 2 with zero execution. A changed source pin also exited 2 before mutation. An unrelated running sentinel container survived exact-ID cleanup and was removed separately by its exact recorded ID.
-- The unchanged external receipt export passed all ten authored cases on actual Docker and actual authorized Cloud runtimes: native PDF fast path, synthetic OCR/field mocks, review draft rows, unreadable amount staying null, seeded duplicate/human correction preservation, different date, instruction-like text, malformed fields, provider failure and exact-owned missing-table fault. Assertions read actual native table rows before cleanup. A repeat passed those ten cases and rejected a deliberately wrong amount with exit 1 despite successful n8n execution. Expectations were not regenerated from output.
-- Native Chat OpenAI/Basic LLM Chain uses authenticated deterministic gateway mocks. A physical qwen2.5:0.5b model produced the independent synthetic JSON expectation via a private local relay. The relay was stopped and confirmed unreachable before replay of the same approved recording. Replay passed with zero inference service access. Local assistant suggestions remained inferred and could not clear unsupported-runtime/oracle blockers.
-- Recovery covers interrupted real bootstrap, partial-create/lost-response simulations, changed identities, paginated credential identity checks, cleanup failures and exact resource preservation. A prior uncertain execution intent was reconciled only when its journaled backing state volume was confirmed removed; no execution ID was invented.
-
-These are alpha qualification results, not universal node support or production readiness. Actual receipt OCR/model accuracy remains the external project's separate earlier live evidence; this suite mocks those dependencies. Docker preserves the export's Cloud document URL and proves the identity components rather than an openable Cloud permalink. Development execution retention is not a durable receipt archive.
-
-## Reproduction and evidence
-
-Use Node 24.18.0 (repository engines require major 24), npm and the existing Linux Docker daemon. Commands run from the CLI worktree `/Users/friday/.codex/worktrees/receipt-draft/n8ntest`:
+From any clean checkout with Node 24:
 
 ```sh
-npm test
+npm ci
 npm run build
+npm test
+node .github/scripts/package-smoke.mjs
 npm run test:docker
-npm run test:local-llm
-npm run test:integration -- tests/e2e/docker.test.ts tests/e2e/native-chat.test.ts
-npm pack --dry-run
-git diff --check
 ```
 
-Ordinary `npm test` is offline and excludes all opt-in runtime/model E2E tests. `test:docker` excludes local-model/assistant tests; `test:local-llm` requires existing native Ollama plus qwen2.5:0.5b. The broader `test:integration` configuration is also explicit opt-in. Optional `WFCHECK_E2E_EVIDENCE_DIR` captures private proof artifacts; tests do not depend on task scratch directories. Fresh gates: 147/147 unit tests, 11/11 Docker E2E tests across ten files (644.23 seconds), 3/3 local-model/assistant tests (72.52 seconds), 3/3 installed/provenance/native-mock checks, 31/31 consumer tests, build, package dry-run and diff checks passed. No lint script exists. One initial installed-consumer test incorrectly expected inspect exit 0 for an unresolved external binding; that test was corrected to the documented configuration-needed exit 2 and rerun, without changing its business oracle.
+The Docker suite requires a running Linux Docker daemon. It creates disposable
+n8n and task-runner containers, isolated state and an authenticated mock gateway.
+It does not require Cloud or model credentials. Local-model qualification is a
+separate opt-in `npm run test:local-llm` using an already installed Ollama service
+and the model named by those integration tests.
 
-The [machine-readable acceptance record](generic-workflow-testing.json) contains actual installed-consumer resource IDs, runtime/catalog/source/fixture hashes, model settings/request/response hashes, recording identity and observations. Source release/package publication is out of scope. All commits/tarballs stay local.
+## Recorded CI evidence
 
-The external project at `/Users/friday/dev/n8n-workflows`, final evidence commit `259a21e`, contains executable suites and full synthetic receipt evidence in `receipt-intake/evidence/wfcheck-generic-acceptance-2026-10-08.json`. Source SHA-256: `31ea3aec844288aacd670bd38eb0efc89b0d03486abe1eaed5ae1f5c28d6b75b`; unchanged human-authored expected fixture SHA-256: `a707e8e495d1b445619b9e1d1b223112b13b2040e8c59c34b5b1d10088f6f140`.
+[GitHub CI for commit 30134ee](https://github.com/freitaglukas/wfcheck/actions/runs/37793541536)
+passed both required jobs:
 
-## Runtime/model identity
+- `verify`: 201 offline tests across 58 files, TypeScript build, production audit
+  and a clean installed-package smoke test.
+- `docker-e2e`: 13 real Docker integration tests across 12 files on Ubuntu ARM.
 
-macOS arm64, Docker daemon 29.5.3, n8n/runner 2.42.4, Node 24.18.0. Architecture-specific pins are in `src/adapters/docker/images.ts` and `docker/images.json`. Actual n8n catalog hash: `cb79cf8506c6da9ab7cf6413355cacb7abaa125ae26a8511bbfd0017e644daa8`.
+This record identifies a verified revision; subsequent changes have their own
+CI checks. The [machine-readable record](generic-workflow-testing.json) contains
+only tool/runtime/CI metadata. Consumer-specific reports and operator resources
+are not shipped with the tool.
 
-- n8n arm64: `sha256:2e2e1cd958335d058d3a82354529b512eecada0d65729036eb45c39455ebd78f`
-- runner arm64: `sha256:8da6ea7f99f217484fd1ab3aacbfb6b79d85af04425cc6e50c0766f8f65c00fe`
-- gateway Node base arm64: `sha256:eef73a25205e27bd016ce672af71560ad6b681142ddf00ff63c7b3098eafcd4d`
-- physical model: qwen2.5:0.5b, digest `a8b0c51577010a279d933d14c2a8ab4b268079d44c5c8830c0a93900f1827c67`, Ollama 0.35.1, temperature/seed 0, output 32, context 8192, timeout 60000 ms in the synthetic qualification.
+## What the generic integration tests establish
 
-Cloud runtime version is not exposed by the public APIs used; API metadata is not substituted for runtime identity. The local model service/physical artifacts were already installed. No hosted inference, model download, service rebinding or purchase was performed during this extension.
+- Documented entity bootstrap, database readiness and the matching external
+  Code runner on the digest-pinned n8n 2.42.4 runtime.
+- Actual containment probes, scoped ownership journals and exact cleanup/recovery.
+- Native webhook/Form/file/PDF/Code/table execution and saved intermediate outputs.
+- Deterministic HTTP/model substitutions with observed outbound requests.
+- Correct exit 1 when a deliberately wrong assertion fails despite n8n success.
+- Retained Unicode request and assertion evidence when runtime cleanup fails or
+  the operator explicitly retains the runtime.
+- Installed-package init, inspection, planning and rejection of unresolved drafts.
 
-## Cloud transport and unchanged resources
+Native observations are distinct from unit-test doubles. Known runtime and node
+limits are in the [support matrix](../support-matrix.md). These tests qualify
+specific adapter versions and operations; they do not certify arbitrary workflow
+business behavior or every native integration.
 
-Authenticated read-only discovery plus workflow/execution/credential/table lists preceded Cloud mutations. The key remained in the existing mode-600 `/Users/friday/dev/n8ntest/.env`, read locally without printing it. Copy the example `.env`, set `N8N_BASE_URL=https://yaumo.app.n8n.cloud/`, fill blank `N8N_API_KEY=` only in a local editor, and keep mode 600. Use trusted process environment or a private dotenv file; never put the key on a command line, in exports, suites, reports or documentation.
+## Consumer workflow testing
 
-A temporary Localtunnel URL produced two HTTP 408/502 failures before any request reached the local gateway (Cloud executions 123–132, eight passes/two failures). That evidence is retained rather than hidden by retries. A fresh Cloudflare Quick Tunnel then passed an actual one-case transport probe (execution 133) and the complete unchanged suite (executions 134–143). Actual fresh URL was `https://analog-large-companies-cornwall.trycloudflare.com`; it is stopped and must not be reused. Cloudflare's earlier DNS failure remains historical evidence in feasibility. This is transport requalification, not a timeout increase, skipped assertion or rewritten fixture.
+```sh
+wfcheck inspect path/to/workflow.json --json artifacts/inventory.json
+wfcheck plan path/to/workflow.json --requirements requirements.txt --out tests/draft.yaml
+# Review fixtures, dependency bindings, effect permissions and expectations.
+wfcheck run tests/behavior.yaml --runtime docker --json artifacts/result.json
+```
 
-The before/after audit confirmed unchanged exact ID sets, unchanged retained workflow contents and unchanged seven-row table contents. Retained task resources: inactive workflow `MFS4hcpthuPvaIbX`, table `bR4orW1uV8GjoSUV`, Basic Form credential `eRdIaS4tTHrS4kHS`, hosted model header credential `SgVzRRga7oUlvbA8`. All new copies/credentials/tables/executions were journaled and removed by exact identity. No Grid resources/data or unrelated production resources were modified.
+Keep the generated suite and its fixtures in the consumer repository. The tool
+reads the selected export and trusted suite configuration; no application profile,
+private repository or hard-coded business mock is required. A reviewed baseline
+can establish regression preservation, while independent requirements establish
+expected behavior. Model suggestions do not approve either.
 
-## Cleanup and remaining limits
-
-Cloud/receipt test journals are clean. Temporary tunnels were explicitly stopped. Docker test containers/networks/volumes and disposable API resources are removed; shared pulled/generated image caches remain. The prior stale execution intent now records `owned-state-volume-removed`, backed by exact parent/volume/daemon proof. Cleanup never searches by prefix or performs global prune. Private original project manifests and synthetic retained data remain intentionally available.
-
-Recover exact journaled IDs with `wfcheck cleanup .wfcheck/journal-THE-RUN-ID.json`. A lost create response with surviving state requires manual exact-ID identification; never blindly repeat creation or trigger. Bootstrap/version/schema or unsupported credential lookup failures remain explicit recovery errors. Other image versions, amd64 qualification, additional native integrations/operations/AI node versions and managed model provisioning are unqualified. A compatible local service requires an operator-authored identity/context enforcement manifest. No new credentials/accounts are needed for the verified Docker/mock path.
-
-Highest-value follow-ups: qualify amd64/current image upgrades in CI; add generic native-integration/provider adapters with isolated dependencies; improve deterministic graph-to-scenario coverage while keeping user requirements/oracles authoritative. Run this suite as an external consumer rather than copying application business logic into the CLI.
-
-## Final independent review and requalification
-
-[One independent review](../reviews/2026-10-08-generic-runtime.md) found execution-policy, cancellation, recovery and model-control gaps. All substantive findings were fixed in one RED/GREEN pass; two advisory findings were regraded by effect and fixed too. Fresh final checks: 163/163 offline tests, build/pack/diff checks, 4/4 affected Docker E2E checks including real removed-server recovery, 3/3 local-model/record/replay/assistant checks, and unchanged external receipt suites: Docker ten passes plus deliberate wrong amount exit 1; Cloud 10/10 at executions 144–153. The retained Cloud resources/seven rows remained unchanged. Exact ownership journals are clean; the last temporary tunnel is stopped. No re-review or production-readiness claim is made.
+Each run reports its own source/fixture hashes, saved executions, actual requests,
+resource observations and cleanup status. Raw captures and recovery journals are
+private by default. Recover the exact owned resources with
+`wfcheck cleanup .wfcheck/journal-THE-RUN-ID.json`.

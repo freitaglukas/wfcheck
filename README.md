@@ -57,7 +57,7 @@ N8N_API_KEY=
 
 Fill the key in a local editor; never echo it, pass it on a command line or put it into workflow JSON. Read-only authenticated public discovery/list operations precede mutations. The key needs the advertised workflow/execution operations plus credential/table operations used by the suite. Only exact IDs created by that run are mutated or deleted.
 
-A temporary HTTPS gateway is required. Automatic cloudflared is supported. A fresh Cloudflare Quick Tunnel passed the complete 8 October Cloud receipt suite; earlier fresh-hostname DNS failed. External Localtunnel worked in the original spike but produced HTTP 408/502 in the later run. Both temporary transports remain dependent on provider connectivity:
+A temporary HTTPS gateway is required. Automatic cloudflared is supported. Cloudflare Quick Tunnel has passed synthetic Cloud integration tests; fresh-hostname DNS can fail. External Localtunnel worked in the original spike but produced HTTP 408/502 in the later run. Both temporary transports remain dependent on provider connectivity:
 
 ```sh
 npx --yes localtunnel@2.0.2 --port 43199 --local-host 127.0.0.1
@@ -92,4 +92,4 @@ npm pack --dry-run
 npm pack                # local tarball only
 ```
 
-No lint script currently exists. `wfcheck init` copies generic examples only. The standalone receipt consumer lives in a separate private repository and is excluded from the package. See [historical feasibility](docs/feasibility.md), [license texts](THIRD_PARTY_NOTICES.md) and [licensing questions](docs/licensing-questions.md).
+No lint script currently exists. `wfcheck init` copies generic examples only. Application workflows, fixtures and business expectations stay in your own consumer project. See [runtime boundaries](docs/feasibility.md), [license texts](THIRD_PARTY_NOTICES.md) and [licensing questions](docs/licensing-questions.md).

@@ -17,7 +17,7 @@ try {
   assert.equal(packages.length, 1);
   const [packed] = packages;
   assert(packed.files.some(file => file.path === 'dist/cli/main.js'));
-  assert(!packed.files.some(file => file.path.includes('receipt-intake')));
+  assert(packed.files.filter(file=>file.path.startsWith('examples/')).every(file=>/^examples\/(fixtures|suites|workflows)\/[^/]+$/.test(file.path)));
   assert(!packed.files.some(file => /^(?:\.env$|\.wfcheck\/|artifacts\/)/.test(file.path)));
   execFileSync('npm', [
     'install', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund',

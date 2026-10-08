@@ -41,7 +41,7 @@ blocks readiness. The additional regression brings the offline suite to 175
 tests. No paid review credits were enabled.
 
 The follow-up CLI review and GitHub review through `98c5482` completed with
-zero new findings. A subsequent Scout/replay commit (`ceb9182`) advanced the
+zero new findings. A subsequent native-adapter/replay commit (`ceb9182`) advanced the
 PR while CI was running. The GitHub app rate-limited that change; a free
 open-source CLI delta review completed across its 38 files with two minor
 findings. Both were reproduced before fixing: malformed node entries could

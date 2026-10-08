@@ -7,7 +7,7 @@ Ollama's actual show metadata advertises `thinking.values` containing false, the
 planner sends `think: false` so reasoning does not consume its bounded completion
 budget. Other models receive no unsupported thinking option. The 5,000-byte
 redacted projection includes compact node/edge dictionaries, full immutable hashes
-and explicit omissions. Fresh qwen3.5:9b receipt/Scout plans produced valid inferred
+and explicit omissions. Fresh qwen3.5:9b plans for exported workflows produced valid inferred
 suggestions; their large bundled Code was not included for semantic review.
 
 CLI overrides case settings, which override suite defaults. Limits: one concurrent call, default 10 calls per case (hard 20), 60-second timeout, 8192 context tokens and 2048 output tokens, temperature 0 and seed 0. Native Ollama receives `num_ctx`/`num_predict` per request. The context check conservatively budgets text bytes; it does not claim deterministic vision tokenization. Failed, canceled, oversized, tool-based or truncated responses produce errors and no fabricated completion.

@@ -24,6 +24,8 @@ model credentials. Cloud and local-model qualification remain explicit local
 runs; Docker CI uses deterministic mocks. No automatic publication or deploy
 job is configured.
 
-Application workflow projects and their history belong in the private
-`freitaglukas/n8n-workflows` repository. This public CLI contains generic
-runtime code and original synthetic examples only.
+Application workflows, deployment configuration, integration fixtures and
+business expectations belong in consumer repositories. This CLI contains
+reusable runtime code, domain-neutral capability tests and small synthetic
+examples. Project-specific validation notes and operator resource records are
+kept with the consumer, not distributed in this repository or package.

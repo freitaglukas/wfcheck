@@ -40,13 +40,13 @@ it('validates disabled flags as booleans and enforces Code size in UTF-8 bytes',
  expect(()=>prepareV2Workflow(unicode,spec(unicode),'http://gateway.test','run','test','token')).toThrow(/256 KiB/);
 });
 it('substitutes only an explicitly pinned Gmail send boundary and retains its message fields',()=>{
- const parameters={resource:'message',operation:'send',sendTo:'owner@example.test',subject:'Synthetic digest',emailType:'text',message:'One verified project',options:{appendAttribution:false}};
+ const parameters={resource:'message',operation:'send',sendTo:'owner@example.test',subject:'Synthetic message',emailType:'text',message:'Synthetic test content',options:{appendAttribution:false}};
  const source=JSON.stringify({name:'Mail boundary',nodes:[n('input','webhook',2,{httpMethod:'POST',path:'test',responseMode:'onReceived',options:{}}),n('send','gmail',2.1,parameters,{credentials:{gmailOAuth2:{id:'private-source'}}})],connections:{input:{main:[[{node:'send',type:'main',index:0}]]}}});
  const test=normalizeSuite({schemaVersion:2,name:'test',tests:[{id:'mail',workflow:'source.json',input:{kind:'json',fixture:'input.json'},nodeMocks:[{nodeId:'send',expectedParametersHash:sha256(JSON.stringify(parameters)),mockPath:'/mail'}],mocks:[{id:'mail',method:'POST',path:'/mail',responses:[{kind:'json',status:200,json:{id:'synthetic'}}]}],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]}).tests[0]!;
  const prepared=prepareV2Workflow(source,test,'http://gateway.test','run','mail','token');
  const send=prepared.workflow.nodes.find(n=>n.id==='send')!;
  expect(send.type).toBe('n8n-nodes-base.httpRequest');expect(send.credentials).toBeUndefined();expect(send.parameters.url).toBe('http://gateway.test/mail');
- expect(send.parameters.bodyParameters.parameters).toContainEqual({name:'message',value:'One verified project'});
+ expect(send.parameters.bodyParameters.parameters).toContainEqual({name:'message',value:'Synthetic test content'});
  test.nodeMocks[0]!.expectedParametersHash='a'.repeat(64);
  expect(()=>prepareV2Workflow(source,test,'http://gateway.test','run','mail','token')).toThrow(/pin/i);
 });
@@ -59,8 +59,8 @@ it('requires an exact isolated child workflow binding instead of a source instan
 });
 it('disables every alternate Form so publication cannot expose a second unauthenticated intake',()=>{
  const form=(id:string,field:string)=>n(id,'formTrigger',2.2,{authentication:'none',formTitle:'Test',formFields:{values:[{fieldLabel:field,fieldType:'file',requiredField:true,multipleFiles:false}]},responseMode:'onReceived',options:{}});
- const source=JSON.stringify({name:'Multiple forms',nodes:[form('first','receipt'),form('second','other'),n('result','noOp',1,{})],connections:{first:{main:[[{node:'result',type:'main',index:0}]]},second:{main:[[{node:'result',type:'main',index:0}]]}}});
- const test=normalizeSuite({schemaVersion:2,name:'forms',tests:[{id:'form',workflow:'forms.json',input:{kind:'file',fixture:'receipt.png',field:'receipt',mimeType:'image/png'},triggerId:'first',mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]}).tests[0]!;
+ const source=JSON.stringify({name:'Multiple forms',nodes:[form('first','document'),form('second','other'),n('result','noOp',1,{})],connections:{first:{main:[[{node:'result',type:'main',index:0}]]},second:{main:[[{node:'result',type:'main',index:0}]]}}});
+ const test=normalizeSuite({schemaVersion:2,name:'forms',tests:[{id:'form',workflow:'forms.json',input:{kind:'file',fixture:'document.png',field:'document',mimeType:'image/png'},triggerId:'first',mocks:[],assertions:[{target:'execution.status',equals:'success'}],verificationKind:'behavior'}]}).tests[0]!;
  expect(prepareV2Workflow(source,test,'http://gateway.test','run','form','token').workflow.nodes.find(n=>n.id==='second')?.disabled).toBe(true);
  const mixed=JSON.parse(source);mixed.nodes[0]=n('first','webhook',2,{httpMethod:'POST',path:'test',responseMode:'onReceived',options:{}});
  test.input={kind:'json',fixture:'input.json'};
